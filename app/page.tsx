@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
+import Link from "next/link";
 
 interface CompressedResult {
   originalName: string;
@@ -65,6 +66,24 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-6">
       <div className="max-w-2xl w-full bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
+        
+        {/* Navigation Banner */}
+        <div className="flex gap-2 mb-6 bg-slate-950 p-1.5 rounded-xl border border-slate-800 text-xs font-medium">
+          <Link
+            href="/"
+            className="flex-1 text-center py-2 bg-indigo-600 text-white rounded-lg"
+          >
+            🖼️ Image Compressor
+          </Link>
+          <Link
+            href="/pdf-merger"
+            className="flex-1 text-center py-2 text-slate-400 hover:text-white transition rounded-lg"
+          >
+            📑 PDF Merger
+          </Link>
+        </div>
+
+        {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-white">🔒 Private Image Compressor</h1>
           <span className="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full">
