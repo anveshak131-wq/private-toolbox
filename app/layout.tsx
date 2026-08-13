@@ -55,7 +55,7 @@ export default function RootLayout({
                 100% Client-Side
               </span>
               <a
-                href="https://rzp.io/rzp/QwI0dv8P"
+                href="https://rzp.io/rzp/0ZgwLn17"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-xl transition shadow-lg shadow-emerald-600/20"

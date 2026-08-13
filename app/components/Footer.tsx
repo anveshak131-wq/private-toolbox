@@ -6,7 +6,7 @@ export default function Footer() {
   const [copied, setCopied] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
 
-  const paymentLink = "https://rzp.io/rzp/QwI0dv8P";
+  const paymentLink = "https://rzp.io/rzp/0ZgwLn17";
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(
     paymentLink
   )}`;
