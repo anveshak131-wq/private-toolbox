@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 
 export default function Footer() {
   const [copied, setCopied] = useState(false);
@@ -40,22 +39,24 @@ export default function Footer() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Razorpay UPI Link */}
           <a
-            href="https://buymeacoffee.com"
+            href="https://rzp.io/rzp/8cfXzWMY"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 px-4 py-2 rounded-xl font-semibold transition"
+            className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 px-4 py-2 rounded-xl font-semibold transition"
           >
-            <span>☕</span>
-            <span>Tip Jar</span>
+            <span>⚡</span>
+            <span>Support via UPI</span>
           </a>
 
+          {/* Share Button */}
           <button
             onClick={handleShare}
-            className="flex items-center gap-2 bg-slate-900 border border-slate-800 text-slate-200 hover:text-white hover:border-slate-700 px-4 py-2 rounded-xl font-semibold transition"
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl font-semibold transition shadow-md shadow-indigo-600/20"
           >
             <span>🔗</span>
-            <span>{copied ? "Link Copied!" : "Share Site"}</span>
+            <span>{copied ? "Link Copied!" : "Share Website"}</span>
           </button>
         </div>
 

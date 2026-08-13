@@ -30,7 +30,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white relative overflow-x-hidden`}
       >
-        {/* Background Ambient Glow FX */}
+        {/* Ambient Background Glow Effects */}
         <div className="fixed inset-0 pointer-events-none z-0 flex justify-center">
           <div className="w-[600px] h-[300px] bg-indigo-600/15 blur-[120px] rounded-full top-[-100px] absolute"></div>
           <div className="w-[400px] h-[250px] bg-emerald-500/10 blur-[100px] rounded-full top-[200px] right-10 absolute hidden md:block"></div>
@@ -39,7 +39,10 @@ export default function RootLayout({
         {/* Global Navigation Header */}
         <header className="sticky top-0 z-50 backdrop-blur-md bg-slate-950/80 border-b border-slate-800/80">
           <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2.5 font-bold text-white text-base tracking-tight hover:opacity-90 transition">
+            <Link
+              href="/"
+              className="flex items-center gap-2.5 font-bold text-white text-base tracking-tight hover:opacity-90 transition"
+            >
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400">
                 🔒
               </span>
@@ -52,18 +55,18 @@ export default function RootLayout({
                 100% Client-Side
               </span>
               <a
-                href="https://buymeacoffee.com"
+                href="https://rzp.io/rzp/8cfXzWMY"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-1.5 rounded-xl transition shadow-lg shadow-indigo-600/20"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-xl transition shadow-lg shadow-emerald-600/20"
               >
-                ☕ Support
+                ⚡ Support
               </a>
             </div>
           </div>
         </header>
 
-        {/* Main Content */}
+        {/* Main Content Area */}
         <div className="flex-grow z-10 relative">{children}</div>
 
         {/* Global Footer */}
