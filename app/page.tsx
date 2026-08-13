@@ -39,7 +39,7 @@ const TOOLS: Tool[] = [
     icon: "📄",
     category: "PDF",
     href: "/image-to-pdf",
-    status: "Coming Soon",
+    status: "Ready",
   },
   {
     id: "image-resizer",
@@ -48,7 +48,7 @@ const TOOLS: Tool[] = [
     icon: "📐",
     category: "Image",
     href: "/image-resizer",
-    status: "Coming Soon",
+    status: "Ready",
   },
   {
     id: "qr-generator",
