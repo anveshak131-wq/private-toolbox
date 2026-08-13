@@ -1,117 +1,63 @@
-"use client";
+import type { Metadata } from "next";
+import ClientTool from "./ClientTool";
 
-import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import QRCode from "qrcode";
+export const metadata: Metadata = {
+  title: "Free Private QR Code Generator | Custom Downloadable PNG QR Codes",
+  description:
+    "Generate custom, colorable QR codes for links and text directly inside your browser. 100% private QR generator with zero tracking or analytics.",
+  keywords: [
+    "private qr code generator",
+    "create custom qr code no tracking",
+    "free png qr generator",
+    "client side qr maker",
+    "secure link to qr code",
+  ],
+};
 
-export default function QrGenerator() {
-  const [text, setText] = useState<string>("https://private-toolbox.pages.dev");
-  const [fgColor, setFgColor] = useState<string>("#000000");
-  const [bgColor, setBgColor] = useState<string>("#ffffff");
-  const [qrUrl, setQrUrl] = useState<string>("");
-
-  useEffect(() => {
-    generateQr();
-  }, [text, fgColor, bgColor]);
-
-  const generateQr = async () => {
-    if (!text.trim()) {
-      setQrUrl("");
-      return;
-    }
-    try {
-      const url = await QRCode.toDataURL(text, {
-        width: 400,
-        margin: 2,
-        color: {
-          dark: fgColor,
-          light: bgColor,
-        },
-      });
-      setQrUrl(url);
-    } catch (err) {
-      console.error("Failed to generate QR code:", err);
-    }
-  };
-
+export default function QrGeneratorPage() {
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-6">
-      <div className="max-w-2xl w-full bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
-        <div className="mb-6">
-          <Link href="/" className="text-xs text-indigo-400 hover:underline inline-block">
-            ← Back to All Tools
-          </Link>
-        </div>
+    <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-6 md:p-12">
+      <div className="max-w-2xl w-full">
+        <ClientTool />
 
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-white">📱 Custom QR Code Generator</h1>
-          <span className="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full">
-            100% In-Browser
-          </span>
-        </div>
-
-        <p className="text-slate-400 text-sm mb-6">
-          Generate downloadable custom QR codes for website links, text, or Wi-Fi logins without tracking.
-        </p>
-
-        {/* Controls */}
-        <div className="space-y-4 mb-6">
-          <div>
-            <label className="block text-xs font-medium text-slate-300 mb-2">
-              URL or Text Content
-            </label>
-            <input
-              type="text"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Enter text or URL..."
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-indigo-500 transition"
-            />
+        <section className="space-y-8 text-slate-300">
+          <div className="border-t border-slate-800 pt-8">
+            <h2 className="text-xl font-bold text-white mb-4">
+              How to Create Custom QR Codes Privately
+            </h2>
+            <ol className="space-y-3 list-decimal list-inside text-sm text-slate-400">
+              <li>
+                <strong className="text-slate-200">Enter Input:</strong> Paste your URL, plain text, or contact information.
+              </li>
+              <li>
+                <strong className="text-slate-200">Customize Colors:</strong> Choose custom foreground and background colors.
+              </li>
+              <li>
+                <strong className="text-slate-200">Download PNG:</strong> Save your high-resolution QR code image immediately.
+              </li>
+            </ol>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-2">
-                Foreground Color
-              </label>
-              <input
-                type="color"
-                value={fgColor}
-                onChange={(e) => setFgColor(e.target.value)}
-                className="w-full h-10 bg-slate-950 border border-slate-800 rounded-lg cursor-pointer p-1"
-              />
+          <div className="border-t border-slate-800 pt-8 space-y-4">
+            <h2 className="text-xl font-bold text-white mb-2">
+              Frequently Asked Questions (FAQ)
+            </h2>
+
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-sm space-y-1">
+              <h3 className="font-semibold text-white">Do generated QR codes ever expire?</h3>
+              <p className="text-slate-400 text-xs leading-relaxed">
+                No. These are direct, static QR codes that point straight to your destination without redirection servers, so they work forever.
+              </p>
             </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-2">
-                Background Color
-              </label>
-              <input
-                type="color"
-                value={bgColor}
-                onChange={(e) => setBgColor(e.target.value)}
-                className="w-full h-10 bg-slate-950 border border-slate-800 rounded-lg cursor-pointer p-1"
-              />
+
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-sm space-y-1">
+              <h3 className="font-semibold text-white">Is my data logged when creating a QR code?</h3>
+              <p className="text-slate-400 text-xs leading-relaxed">
+                Never. The QR code image is generated instantly using client-side JavaScript inside your browser.
+              </p>
             </div>
           </div>
-        </div>
-
-        {/* QR Output */}
-        {qrUrl ? (
-          <div className="flex flex-col items-center bg-slate-950 border border-slate-800 rounded-xl p-6 space-y-4">
-            <img src={qrUrl} alt="Generated QR Code" className="w-48 h-48 rounded-lg shadow-md" />
-            <a
-              href={qrUrl}
-              download="qrcode.png"
-              className="w-full text-center bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-lg text-sm transition"
-            >
-              Download PNG QR Code
-            </a>
-          </div>
-        ) : (
-          <p className="text-center text-slate-500 text-sm py-4">
-            Enter text above to preview your QR code.
-          </p>
-        )}
+        </section>
       </div>
     </main>
   );

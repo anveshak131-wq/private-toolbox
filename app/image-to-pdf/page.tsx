@@ -1,166 +1,63 @@
-"use client";
+import type { Metadata } from "next";
+import ClientTool from "./ClientTool";
 
-import React, { useState } from "react";
-import Link from "next/link";
-import { PDFDocument } from "pdf-lib";
+export const metadata: Metadata = {
+  title: "Convert Image to PDF Online Privately | Free Client-Side JPG to PDF",
+  description:
+    "Convert JPG, PNG, and WebP images into a single clean PDF document directly in your browser. 100% private with zero file uploads.",
+  keywords: [
+    "image to pdf private",
+    "convert jpg to pdf browser",
+    "png to pdf no upload",
+    "client side photo to pdf",
+    "free secure image to pdf",
+  ],
+};
 
-export default function ImageToPdf() {
-  const [files, setFiles] = useState<File[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const selectedFiles = Array.from(e.target.files).filter((file) =>
-        file.type.startsWith("image/")
-      );
-      setFiles((prev) => [...prev, ...selectedFiles]);
-    }
-  };
-
-  const removeFile = (index: number) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
-    if (pdfUrl) setPdfUrl(null);
-  };
-
-  const convertToPdf = async () => {
-    if (files.length === 0) return;
-    setLoading(true);
-
-    try {
-      const pdfDoc = await PDFDocument.create();
-
-      for (const file of files) {
-        const arrayBuffer = await file.arrayBuffer();
-        let image;
-
-        if (file.type === "image/png") {
-          image = await pdfDoc.embedPng(arrayBuffer);
-        } else if (file.type === "image/jpeg" || file.type === "image/jpg") {
-          image = await pdfDoc.embedJpg(arrayBuffer);
-        } else {
-          // Fallback for WebP/other formats via Canvas rendering
-          const bitmap = await createImageBitmap(file);
-          const canvas = document.createElement("canvas");
-          canvas.width = bitmap.width;
-          canvas.height = bitmap.height;
-          const ctx = canvas.getContext("2d");
-          ctx?.drawImage(bitmap, 0, 0);
-          const jpegDataUrl = canvas.toDataURL("image/jpeg", 0.95);
-          const response = await fetch(jpegDataUrl);
-          const jpegBytes = await response.arrayBuffer();
-          image = await pdfDoc.embedJpg(jpegBytes);
-        }
-
-        // Add a page sized exactly to the image
-        const page = pdfDoc.addPage([image.width, image.height]);
-        page.drawImage(image, {
-          x: 0,
-          y: 0,
-          width: image.width,
-          height: image.height,
-        });
-      }
-
-      const pdfBytes = await pdfDoc.save();
-      const blob = new Blob([pdfBytes as BlobPart], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      setPdfUrl(url);
-    } catch (error) {
-      console.error("Conversion error:", error);
-      alert("Failed to convert images to PDF.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+export default function ImageToPdfPage() {
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-6">
-      <div className="max-w-2xl w-full bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
-        <div className="mb-6">
-          <Link href="/" className="text-xs text-indigo-400 hover:underline inline-block">
-            ← Back to All Tools
-          </Link>
-        </div>
+    <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-6 md:p-12">
+      <div className="max-w-2xl w-full">
+        <ClientTool />
 
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-white">📄 Private Image to PDF</h1>
-          <span className="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full">
-            100% In-Browser
-          </span>
-        </div>
+        <section className="space-y-8 text-slate-300">
+          <div className="border-t border-slate-800 pt-8">
+            <h2 className="text-xl font-bold text-white mb-4">
+              How to Convert Images to PDF Privately
+            </h2>
+            <ol className="space-y-3 list-decimal list-inside text-sm text-slate-400">
+              <li>
+                <strong className="text-slate-200">Select Images:</strong> Choose one or multiple JPG, PNG, or WebP files from your device.
+              </li>
+              <li>
+                <strong className="text-slate-200">Convert Instantly:</strong> Click "Convert to PDF" to let your browser assemble the document locally.
+              </li>
+              <li>
+                <strong className="text-slate-200">Download PDF:</strong> Save the final PDF file directly to your system.
+              </li>
+            </ol>
+          </div>
 
-        <p className="text-slate-400 text-sm mb-6">
-          Convert JPG, PNG, or WebP photos into a PDF document without uploading them to any server.
-        </p>
+          <div className="border-t border-slate-800 pt-8 space-y-4">
+            <h2 className="text-xl font-bold text-white mb-2">
+              Frequently Asked Questions (FAQ)
+            </h2>
 
-        {/* Upload Dropzone */}
-        <div className="border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-850 hover:bg-slate-800/50 transition duration-200 rounded-xl p-6 text-center cursor-pointer mb-6 relative">
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={handleFileChange}
-            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-          />
-          <p className="text-sm font-medium text-slate-300">
-            Click or drag & drop images here (JPG, PNG, WebP)
-          </p>
-        </div>
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-sm space-y-1">
+              <h3 className="font-semibold text-white">Are my photos sent to any server?</h3>
+              <p className="text-slate-400 text-xs leading-relaxed">
+                No. The conversion is performed entirely in your browser using local WebAssembly JavaScript libraries.
+              </p>
+            </div>
 
-        {/* File List */}
-        {files.length > 0 && (
-          <div className="mb-6 space-y-2">
-            <h3 className="text-sm font-medium text-slate-300">
-              Selected Images ({files.length}):
-            </h3>
-            <div className="max-h-48 overflow-y-auto space-y-2 pr-1">
-              {files.map((file, idx) => (
-                <div
-                  key={idx}
-                  className="flex justify-between items-center bg-slate-950 border border-slate-800 p-3 rounded-lg text-sm"
-                >
-                  <span className="truncate max-w-[80%] text-slate-300">
-                    {idx + 1}. {file.name}
-                  </span>
-                  <button
-                    onClick={() => removeFile(idx)}
-                    className="text-red-400 hover:text-red-300 text-xs px-2 py-1"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-sm space-y-1">
+              <h3 className="font-semibold text-white">Can I combine multiple photos into one PDF?</h3>
+              <p className="text-slate-400 text-xs leading-relaxed">
+                Yes! You can select multiple images at once, and they will all be merged in order into a single PDF file.
+              </p>
             </div>
           </div>
-        )}
-
-        <button
-          onClick={convertToPdf}
-          disabled={files.length === 0 || loading}
-          className={`w-full py-3 rounded-lg font-medium transition duration-150 ${
-            files.length === 0 || loading
-              ? "bg-slate-800 text-slate-500 cursor-not-allowed"
-              : "bg-indigo-600 hover:bg-indigo-500 text-white"
-          }`}
-        >
-          {loading ? "Converting..." : `Convert ${files.length} Image${files.length > 1 ? "s" : ""} to PDF`}
-        </button>
-
-        {pdfUrl && (
-          <div className="mt-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-center">
-            <p className="text-emerald-400 font-medium text-sm mb-3">
-              🎉 PDF Generated Successfully!
-            </p>
-            <a
-              href={pdfUrl}
-              download="converted-images.pdf"
-              className="inline-block bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-6 py-2.5 rounded-lg text-sm transition"
-            >
-              Download PDF
-            </a>
-          </div>
-        )}
+        </section>
       </div>
     </main>
   );
