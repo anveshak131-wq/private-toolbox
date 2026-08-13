@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
+import Script from "next/script";
 import "./globals.css";
 import Footer from "./components/Footer";
 
@@ -30,6 +31,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white relative overflow-x-hidden`}
       >
+        {/* Google AdSense Script */}
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1912611953756071"
+          crossOrigin="anonymous"
+          strategy="lazyOnload"
+        />
+
         {/* Ambient Background Glow Effects */}
         <div className="fixed inset-0 pointer-events-none z-0 flex justify-center">
           <div className="w-[600px] h-[300px] bg-indigo-600/15 blur-[120px] rounded-full top-[-100px] absolute"></div>
