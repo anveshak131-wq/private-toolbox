@@ -57,7 +57,7 @@ const TOOLS: Tool[] = [
     icon: "📱",
     category: "Utility",
     href: "/qr-generator",
-    status: "Coming Soon",
+    status: "Ready",
   },
   {
     id: "privacy-redactor",
@@ -66,7 +66,7 @@ const TOOLS: Tool[] = [
     icon: "🙈",
     category: "Image",
     href: "/privacy-redactor",
-    status: "Coming Soon",
+    status: "Ready",
   },
 ];
 
