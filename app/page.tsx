@@ -1,160 +1,183 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 
-interface CompressedResult {
-  originalName: string;
-  originalSize: number;
-  compressedSize: number;
-  url: string;
+interface Tool {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  category: "Image" | "PDF" | "Utility";
+  href: string;
+  status: "Ready" | "Coming Soon";
 }
 
+const TOOLS: Tool[] = [
+  {
+    id: "image-compressor",
+    title: "Image Compressor",
+    description: "Compress JPG, PNG & WebP images without losing quality.",
+    icon: "🖼️",
+    category: "Image",
+    href: "/image-compressor",
+    status: "Ready",
+  },
+  {
+    id: "pdf-merger",
+    title: "PDF Merger",
+    description: "Combine multiple PDF documents into one seamless file.",
+    icon: "📑",
+    category: "PDF",
+    href: "/pdf-merger",
+    status: "Ready",
+  },
+  {
+    id: "image-to-pdf",
+    title: "Image to PDF",
+    description: "Convert images (JPG/PNG) into a single clean PDF document.",
+    icon: "📄",
+    category: "PDF",
+    href: "/image-to-pdf",
+    status: "Coming Soon",
+  },
+  {
+    id: "image-resizer",
+    title: "Image Resizer",
+    description: "Resize dimensions & convert format between PNG, JPG, and WebP.",
+    icon: "📐",
+    category: "Image",
+    href: "/image-resizer",
+    status: "Coming Soon",
+  },
+  {
+    id: "qr-generator",
+    title: "QR Code Generator",
+    description: "Create custom downloadable QR codes for links, Wi-Fi, and text.",
+    icon: "📱",
+    category: "Utility",
+    href: "/qr-generator",
+    status: "Coming Soon",
+  },
+  {
+    id: "privacy-redactor",
+    title: "Privacy Redactor",
+    description: "Blur out sensitive info from screenshots and photos privately.",
+    icon: "🙈",
+    category: "Image",
+    href: "/privacy-redactor",
+    status: "Coming Soon",
+  },
+];
+
 export default function Home() {
-  const [quality, setQuality] = useState<number>(0.7);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [result, setResult] = useState<CompressedResult | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [search, setSearch] = useState("");
+  const [activeCategory, setActiveCategory] = useState<string>("All");
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const categories = ["All", "Image", "PDF", "Utility"];
 
-    setLoading(true);
-    const reader = new FileReader();
-
-    reader.onload = (event) => {
-      const img = new Image();
-      img.src = event.target?.result as string;
-
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = img.width;
-        canvas.height = img.height;
-
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-
-        ctx.drawImage(img, 0, 0);
-
-        // Convert canvas to compressed image Blob directly in the browser
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) return;
-            const compressedUrl = URL.createObjectURL(blob);
-            setResult({
-              originalName: file.name,
-              originalSize: file.size,
-              compressedSize: blob.size,
-              url: compressedUrl,
-            });
-            setLoading(false);
-          },
-          "image/jpeg",
-          quality
-        );
-      };
-    };
-
-    reader.readAsDataURL(file);
-  };
-
-  const formatSize = (bytes: number) => {
-    return (bytes / 1024 / 1024).toFixed(2) + " MB";
-  };
+  const filteredTools = TOOLS.filter((tool) => {
+    const matchesSearch =
+      tool.title.toLowerCase().includes(search.toLowerCase()) ||
+      tool.description.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory =
+      activeCategory === "All" || tool.category === activeCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-6">
-      <div className="max-w-2xl w-full bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
+    <main className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-12">
+      <div className="max-w-5xl mx-auto space-y-10">
         
-        {/* Navigation Banner */}
-        <div className="flex gap-2 mb-6 bg-slate-950 p-1.5 rounded-xl border border-slate-800 text-xs font-medium">
-          <Link
-            href="/"
-            className="flex-1 text-center py-2 bg-indigo-600 text-white rounded-lg"
-          >
-            🖼️ Image Compressor
-          </Link>
-          <Link
-            href="/pdf-merger"
-            className="flex-1 text-center py-2 text-slate-400 hover:text-white transition rounded-lg"
-          >
-            📑 PDF Merger
-          </Link>
-        </div>
-
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-white">🔒 Private Image Compressor</h1>
-          <span className="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full">
-            100% In-Browser
-          </span>
-        </div>
-
-        <p className="text-slate-400 text-sm mb-6">
-          Compress your images directly inside your browser. No files are ever uploaded to any server.
-        </p>
-
-        {/* Quality Controls */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-2 text-slate-300">
-            Compression Quality: {Math.round(quality * 100)}%
-          </label>
-          <input
-            type="range"
-            min="0.1"
-            max="1.0"
-            step="0.05"
-            value={quality}
-            onChange={(e) => setQuality(parseFloat(e.target.value))}
-            className="w-full accent-indigo-500 bg-slate-800 h-2 rounded-lg cursor-pointer"
-          />
-        </div>
-
-        {/* File Dropzone */}
-        <div
-          onClick={() => fileInputRef.current?.click()}
-          className="border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-850 hover:bg-slate-800/50 transition duration-200 rounded-xl p-8 text-center cursor-pointer mb-6"
-        >
-          <p className="text-sm font-medium text-slate-300">
-            {loading ? "Compressing image..." : "Click to select an image (JPG, PNG)"}
-          </p>
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept="image/*"
-            className="hidden"
-          />
-        </div>
-
-        {/* Output Results */}
-        {result && (
-          <div className="bg-slate-950 border border-slate-800 rounded-xl p-5 space-y-4">
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-slate-400">Original Size:</span>
-              <span className="font-semibold text-slate-200">{formatSize(result.originalSize)}</span>
-            </div>
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-slate-400">Compressed Size:</span>
-              <span className="font-semibold text-emerald-400">{formatSize(result.compressedSize)}</span>
-            </div>
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-slate-400">Savings:</span>
-              <span className="font-semibold text-indigo-400">
-                {Math.round(((result.originalSize - result.compressedSize) / result.originalSize) * 100)}%
-              </span>
-            </div>
-
-            <a
-              href={result.url}
-              download={`compressed-${result.originalName}`}
-              className="block w-full text-center bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-lg transition duration-150"
-            >
-              Download Compressed Image
-            </a>
+        {/* Hero Section */}
+        <div className="text-center space-y-4">
+          <div className="inline-block bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs px-3 py-1 rounded-full font-medium">
+            🔒 100% Client-Side • Files Never Leave Your Device
           </div>
-        )}
+          <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">
+            Private Web Utility Toolbox
+          </h1>
+          <p className="text-slate-400 max-w-2xl mx-auto text-sm md:text-base">
+            Fast, free, and completely private micro-tools. No file uploads to remote servers, no file size limits, and zero data tracking.
+          </p>
+        </div>
+
+        {/* Search & Filter Controls */}
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+          <input
+            type="text"
+            placeholder="Search tools (e.g., compress, PDF, blur)..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full md:w-80 bg-slate-900 border border-slate-800 focus:border-indigo-500 text-slate-200 px-4 py-2.5 rounded-xl text-sm outline-none transition"
+          />
+
+          <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-1">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`px-4 py-2 rounded-xl text-xs font-medium transition ${
+                  activeCategory === cat
+                    ? "bg-indigo-600 text-white"
+                    : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tools Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredTools.map((tool) => (
+            <div
+              key={tool.id}
+              className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-2xl p-6 transition flex flex-col justify-between group"
+            >
+              <div>
+                <div className="flex justify-between items-start mb-4">
+                  <span className="text-3xl">{tool.icon}</span>
+                  <span
+                    className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full border ${
+                      tool.status === "Ready"
+                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                        : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                    }`}
+                  >
+                    {tool.status}
+                  </span>
+                </div>
+                <h3 className="font-bold text-white text-lg group-hover:text-indigo-400 transition">
+                  {tool.title}
+                </h3>
+                <p className="text-slate-400 text-xs mt-2 leading-relaxed">
+                  {tool.description}
+                </p>
+              </div>
+
+              <div className="mt-6">
+                {tool.status === "Ready" ? (
+                  <Link
+                    href={tool.href}
+                    className="block w-full text-center bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium py-2.5 rounded-xl transition"
+                  >
+                    Use Tool →
+                  </Link>
+                ) : (
+                  <button
+                    disabled
+                    className="w-full text-center bg-slate-800 text-slate-500 text-xs font-medium py-2.5 rounded-xl cursor-not-allowed"
+                  >
+                    Coming Soon
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
       </div>
     </main>
   );
