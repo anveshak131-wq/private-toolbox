@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/admin"],
+      disallow: ["/vault-x9k2p-control-panel"],
     },
     sitemap: "https://private-toolbox.pages.dev/sitemap.xml",
   };
