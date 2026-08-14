@@ -1,263 +1,423 @@
 "use client";
 
+export const dynamic = "force-static";
+
 import React, { useState, useEffect } from "react";
-import Script from "next/script";
 import Link from "next/link";
+import {
+  getAnalyticsData,
+  getSiteConfig,
+  updateSiteConfig,
+  resetAnalyticsData,
+  logAdminLogin,
+  SiteConfig,
+} from "../lib/analytics";
 
-export default function SecretAdminPage() {
-  // ⚙️ CONFIGURATION: Set your Google Client ID and Authorized Email
-  const GOOGLE_CLIENT_ID = "660955029020-03hv98teq5d5et123cf7t65vv2jrmd3o.apps.googleusercontent.com"; // Replace with your Client ID
-  const AUTHORIZED_EMAIL = "anveshkoganti54@gmail.com"; // Replace with your exact Google Email
+const ADMIN_PIN = "9944"; // Master PIN
+const IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15 Minutes Auto-Logout
 
-  const [user, setUser] = useState<{ name: string; email: string; picture: string } | null>(null);
-  const [authError, setAuthError] = useState("");
-  const [gsiLoaded, setGsiLoaded] = useState(false);
+const ALL_TOOLS = [
+  { id: "image-compressor", name: "Image Compressor" },
+  { id: "pdf-merger", name: "PDF Merger" },
+  { id: "pdf-organizer", name: "PDF Splitter & Deletor" },
+  { id: "image-to-pdf", name: "Image to PDF" },
+  { id: "image-resizer", name: "Image Resizer" },
+  { id: "privacy-redactor", name: "Privacy Redactor" },
+  { id: "json-formatter", name: "JSON Formatter" },
+  { id: "diff-checker", name: "Text Diff Checker" },
+  { id: "base64-codec", name: "Base64 Codec" },
+  { id: "svg-converter", name: "SVG Converter" },
+  { id: "heic-converter", name: "HEIC to JPEG Converter" },
+  { id: "qr-generator", name: "QR Code Generator" },
+];
 
-  // Analytics & Control States
-  const [stats, setStats] = useState({
-    totalViews: 0,
-    uniqueVisitors: 0,
-    toolStats: {} as Record<string, number>,
-  });
+export default function AdminControlPanel() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [pinInput, setPinInput] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<"metrics" | "tools" | "announcement" | "errors" | "audit">("metrics");
+  const [data, setData] = useState<any>(null);
+  const [config, setConfig] = useState<SiteConfig>(getSiteConfig());
 
-  const [bannerActive, setBannerActive] = useState(false);
-  const [bannerText, setBannerText] = useState("");
-  const [savedSuccess, setSavedSuccess] = useState(false);
+  // Inactivity Auto-Logout Handler
+  useEffect(() => {
+    if (!isAuthenticated) return;
 
-  // Parse Google JWT Token
-  const parseJwt = (token: string) => {
-    try {
-      const base64Url = token.split(".")[1];
-      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split("")
-          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-          .join("")
-      );
-      return JSON.parse(jsonPayload);
-    } catch {
-      return null;
-    }
-  };
+    let timeout = setTimeout(() => {
+      setIsAuthenticated(false);
+      alert("Session expired due to 15 minutes of inactivity.");
+    }, IDLE_TIMEOUT_MS);
 
-  // Google Sign-In Callback
-  const handleCredentialResponse = (response: any) => {
-    const payload = parseJwt(response.credential);
+    const resetTimer = () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        setIsAuthenticated(false);
+      }, IDLE_TIMEOUT_MS);
+    };
 
-    if (payload && payload.email) {
-      if (payload.email.toLowerCase() === AUTHORIZED_EMAIL.toLowerCase()) {
-        const userData = {
-          name: payload.name,
-          email: payload.email,
-          picture: payload.picture,
-        };
-        setUser(userData);
-        sessionStorage.setItem("pt_admin_session", JSON.stringify(userData));
-        setAuthError("");
-        loadDashboardData();
-      } else {
-        setAuthError(`Access Denied: ${payload.email} is not authorized.`);
-      }
+    window.addEventListener("mousemove", resetTimer);
+    window.addEventListener("keydown", resetTimer);
+
+    return () => {
+      clearTimeout(timeout);
+      window.removeEventListener("mousemove", resetTimer);
+      window.removeEventListener("keydown", resetTimer);
+    };
+  }, [isAuthenticated]);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pinInput === ADMIN_PIN) {
+      setIsAuthenticated(true);
+      logAdminLogin();
+      refreshData();
     } else {
-      setAuthError("Failed to verify Google identity.");
+      alert("Invalid Security Code.");
+      setPinInput("");
     }
   };
 
-  // Check existing session
-  useEffect(() => {
-    const saved = sessionStorage.getItem("pt_admin_session");
-    if (saved) {
-      setUser(JSON.parse(saved));
-      loadDashboardData();
+  const refreshData = () => {
+    setData(getAnalyticsData());
+    setConfig(getSiteConfig());
+  };
+
+  const toggleTool = (toolId: string) => {
+    const isCurrentlyDisabled = config.disabledTools.includes(toolId);
+    const updatedDisabled = isCurrentlyDisabled
+      ? config.disabledTools.filter((id) => id !== toolId)
+      : [...config.disabledTools, toolId];
+
+    const newConfig = { ...config, disabledTools: updatedDisabled };
+    setConfig(newConfig);
+    updateSiteConfig(newConfig);
+  };
+
+  const saveAnnouncement = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateSiteConfig(config);
+    alert("Announcement configuration updated successfully!");
+  };
+
+  const exportDataJSON = () => {
+    const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(data, null, 2))}`;
+    const dl = document.createElement("a");
+    dl.setAttribute("href", jsonString);
+    dl.setAttribute("download", `privatetoolbox-analytics-${Date.now()}.json`);
+    dl.click();
+  };
+
+  const handleResetData = () => {
+    if (confirm("Are you sure you want to purge all analytics logs?")) {
+      resetAnalyticsData();
+      refreshData();
     }
-  }, []);
+  };
 
-  // Initialize Google Sign-In Button
-  useEffect(() => {
-    if (gsiLoaded && !user && typeof window !== "undefined" && (window as any).google) {
-      (window as any).google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: handleCredentialResponse,
-      });
-
-      const btnContainer = document.getElementById("googleBtn");
-      if (btnContainer) {
-        (window as any).google.accounts.id.renderButton(btnContainer, {
-          theme: "filled_blue",
-          size: "large",
-          shape: "pill",
-          text: "signin_with",
-          width: 280,
-        });
-      }
-    }
-  }, [gsiLoaded, user]);
-
-  const loadDashboardData = () => {
-    const totalViews = parseInt(localStorage.getItem("pt_total_views") || "0", 10);
-    const uniqueVisitors = parseInt(localStorage.getItem("pt_unique_visitors") || "0", 10);
-    const toolStats = JSON.parse(localStorage.getItem("pt_tool_stats") || "{}");
-
-    setStats({ totalViews, uniqueVisitors, toolStats });
-    setBannerActive(localStorage.getItem("pt_setting_banner_active") === "true");
-    setBannerText(
-      localStorage.getItem("pt_setting_banner_text") ||
-        "🔥 100% Free & Private Browser Tools."
+  // Auth Gate Form
+  if (!isAuthenticated) {
+    return (
+      <main className="min-h-[80vh] flex items-center justify-center px-4">
+        <div className="bg-slate-900/80 border border-slate-800 p-8 rounded-3xl max-w-sm w-full space-y-6 text-center shadow-2xl backdrop-blur-xl">
+          <div className="h-12 w-12 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center mx-auto text-xl font-bold">
+            🛡️
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-white">Master Control Vault</h1>
+            <p className="text-xs text-slate-400 mt-1">Enter PIN for PrivateToolbox diagnostics</p>
+          </div>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <input
+              type="password"
+              maxLength={8}
+              value={pinInput}
+              onChange={(e) => setPinInput(e.target.value)}
+              placeholder="••••"
+              className="w-full text-center text-xl tracking-widest bg-slate-950 border border-slate-800 rounded-xl py-3 text-white focus:border-indigo-500 outline-none"
+              autoFocus
+            />
+            <button
+              type="submit"
+              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-xs transition"
+            >
+              Unlock Dashboard
+            </button>
+          </form>
+        </div>
+      </main>
     );
-  };
+  }
 
-  const saveSettings = () => {
-    localStorage.setItem("pt_setting_banner_active", bannerActive.toString());
-    localStorage.setItem("pt_setting_banner_text", bannerText);
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 2500);
-  };
-
-  const handleSignOut = () => {
-    sessionStorage.removeItem("pt_admin_session");
-    setUser(null);
-  };
+  const supportConversionRate = data?.totalViews
+    ? (((data.supportClicks || 0) / data.totalViews) * 100).toFixed(2)
+    : "0.00";
 
   return (
-    <>
-      {/* Load Google Identity Services SDK */}
-      <Script
-        src="https://accounts.google.com/gsi/client"
-        strategy="afterInteractive"
-        onLoad={() => setGsiLoaded(true)}
-      />
+    <main className="max-w-6xl mx-auto px-6 py-10 space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-6">
+        <div>
+          <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400 mb-1">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Session Active (15m Idle Protection)
+          </div>
+          <h1 className="text-2xl font-black text-white">Vault Master Control</h1>
+          <p className="text-xs text-slate-400">Manage real-time analytics, tool availability, announcements, and errors.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={exportDataJSON}
+            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition"
+          >
+            Export JSON
+          </button>
+          <button
+            onClick={() => setIsAuthenticated(false)}
+            className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-xl text-xs font-semibold transition"
+          >
+            Lock Vault
+          </button>
+        </div>
+      </div>
 
-      <main className="min-h-screen p-6 md:p-12 text-slate-100 flex flex-col items-center justify-center">
-        {!user ? (
-          /* 1. Google OAuth Gate */
-          <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-3xl p-8 max-w-md w-full text-center shadow-2xl space-y-6 relative overflow-hidden">
-            <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-48 h-24 bg-indigo-500/20 blur-3xl rounded-full pointer-events-none"></div>
+      {/* Tabs */}
+      <div className="flex flex-wrap gap-2 border-b border-slate-800 pb-3 text-xs font-semibold">
+        {[
+          { id: "metrics", label: "📊 Usage & Metrics" },
+          { id: "tools", label: "⚙️ Tool Killswitches" },
+          { id: "announcement", label: "📢 Global Announcement" },
+          { id: "errors", label: "🚨 Caught Errors" },
+          { id: "audit", label: "🛡️ Audit Trail" },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={`px-4 py-2 rounded-xl transition ${
+              activeTab === tab.id
+                ? "bg-indigo-600 text-white"
+                : "bg-slate-900/60 text-slate-400 hover:text-white border border-slate-800"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-            <div className="h-14 w-14 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center text-2xl mx-auto text-indigo-400">
-              🔒
+      {/* TAB 1: METRICS & CONVERSIONS */}
+      {activeTab === "metrics" && data && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
+              <div className="text-xs text-slate-400 font-semibold">Total Page Impressions</div>
+              <div className="text-3xl font-black text-white mt-1">{data.totalViews}</div>
+              <div className="text-[10px] text-slate-500 mt-1">Stored in client telemetry</div>
             </div>
-
-            <div className="space-y-1">
-              <h1 className="text-xl font-bold text-white">Private Command Center</h1>
-              <p className="text-xs text-slate-400">
-                Restricted access. Sign in with authorized Google account.
-              </p>
+            <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
+              <div className="text-xs text-slate-400 font-semibold">Support Link Clicks</div>
+              <div className="text-3xl font-black text-indigo-400 mt-1">{data.supportClicks || 0}</div>
+              <div className="text-[10px] text-slate-500 mt-1">Razorpay donation interest</div>
             </div>
-
-            <div className="flex justify-center min-h-[44px] pt-2">
-              <div id="googleBtn"></div>
-            </div>
-
-            {authError && (
-              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-medium">
-                {authError}
-              </div>
-            )}
-
-            <div className="pt-2">
-              <Link href="/" className="text-xs text-slate-500 hover:text-slate-400">
-                ← Return to Site
-              </Link>
+            <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
+              <div className="text-xs text-slate-400 font-semibold">Support Conversion Rate</div>
+              <div className="text-3xl font-black text-emerald-400 mt-1">{supportConversionRate}%</div>
+              <div className="text-[10px] text-slate-500 mt-1">Clicks per total views</div>
             </div>
           </div>
-        ) : (
-          /* 2. Authorized Admin Dashboard */
-          <div className="max-w-5xl w-full space-y-8">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-6">
-              <div className="flex items-center gap-4">
-                {user.picture && (
-                  <img
-                    src={user.picture}
-                    alt={user.name}
-                    className="w-12 h-12 rounded-full border border-indigo-500/40"
-                  />
-                )}
-                <div>
-                  <h1 className="text-2xl font-black text-white">
-                    Welcome, {user.name}
-                  </h1>
-                  <p className="text-xs text-emerald-400 font-mono">
-                    ✓ Verified Admin ({user.email})
-                  </p>
-                </div>
-              </div>
 
-              <div className="flex items-center gap-3">
-                <Link
-                  href="/"
-                  className="bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs px-4 py-2 rounded-xl transition"
-                >
-                  View Live Site ↗
-                </Link>
-                <button
-                  onClick={handleSignOut}
-                  className="bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 text-xs px-4 py-2 rounded-xl transition font-semibold"
-                >
-                  Sign Out
-                </button>
-              </div>
-            </div>
-
-            {/* Metrics Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-              <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 space-y-2">
-                <p className="text-xs text-slate-400 uppercase tracking-wider">Total Views</p>
-                <p className="text-3xl font-black text-white">{stats.totalViews}</p>
-              </div>
-
-              <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 space-y-2">
-                <p className="text-xs text-slate-400 uppercase tracking-wider">Unique Visitors</p>
-                <p className="text-3xl font-black text-indigo-400">{stats.uniqueVisitors}</p>
-              </div>
-
-              <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 space-y-2">
-                <p className="text-xs text-slate-400 uppercase tracking-wider">Hosting Cost</p>
-                <p className="text-3xl font-black text-emerald-400">₹0 / mo</p>
-              </div>
-            </div>
-
-            {/* Site Controls */}
-            <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="font-bold text-white text-base">🎛️ Live Site Controls</h2>
-                {savedSuccess && (
-                  <span className="text-xs text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full font-semibold">
-                    ✓ Saved!
-                  </span>
-                )}
-              </div>
-
-              <div className="space-y-3 text-xs">
-                <div className="flex items-center justify-between">
-                  <label className="text-slate-300 font-medium">Top Announcement Banner</label>
-                  <input
-                    type="checkbox"
-                    checked={bannerActive}
-                    onChange={(e) => setBannerActive(e.target.checked)}
-                    className="accent-indigo-500 h-4 w-4 cursor-pointer"
-                  />
-                </div>
-
-                <input
-                  type="text"
-                  value={bannerText}
-                  onChange={(e) => setBannerText(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-indigo-500"
-                />
-
-                <button
-                  onClick={saveSettings}
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-5 py-2.5 rounded-xl transition"
-                >
-                  Save Controls
-                </button>
-              </div>
+          {/* Tool Breakdown Table */}
+          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <h3 className="text-sm font-bold text-white">Tool Popularity Breakdown</h3>
+            <div className="space-y-3">
+              {Object.entries(data.toolViews || {}).length === 0 && (
+                <p className="text-xs text-slate-500">No tool usage recorded yet.</p>
+              )}
+              {Object.entries(data.toolViews || {}).map(([tool, count]: any) => {
+                const percentage = data.totalViews ? Math.round((count / data.totalViews) * 100) : 0;
+                return (
+                  <div key={tool} className="space-y-1">
+                    <div className="flex justify-between text-xs font-semibold">
+                      <span className="text-slate-300">/{tool}</span>
+                      <span className="text-slate-400">{count} views ({percentage}%)</span>
+                    </div>
+                    <div className="h-2 w-full bg-slate-950 rounded-full overflow-hidden">
+                      <div className="h-full bg-indigo-500 rounded-full transition-all" style={{ width: `${percentage}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
-        )}
-      </main>
-    </>
+
+          {/* Device Distribution */}
+          <div className="grid grid-cols-3 gap-4">
+            {Object.entries(data.deviceStats || {}).map(([dev, cnt]: any) => (
+              <div key={dev} className="bg-slate-900/40 border border-slate-800 p-4 rounded-xl text-center">
+                <div className="text-xs text-slate-400 font-semibold">{dev}</div>
+                <div className="text-xl font-bold text-white mt-1">{cnt}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="pt-4 flex justify-end">
+            <button
+              onClick={handleResetData}
+              className="text-xs text-rose-400 hover:underline"
+            >
+              Purge All Analytics Records
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: TOOL TOGGLES */}
+      {activeTab === "tools" && (
+        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <div>
+            <h3 className="text-sm font-bold text-white">Remote Tool Availability</h3>
+            <p className="text-xs text-slate-400">Toggle any tool off to mark it under maintenance without redeploying.</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            {ALL_TOOLS.map((tool) => {
+              const isDisabled = config.disabledTools.includes(tool.id);
+              return (
+                <div
+                  key={tool.id}
+                  className="flex items-center justify-between p-3.5 bg-slate-950/60 border border-slate-800/80 rounded-xl"
+                >
+                  <div>
+                    <div className="text-xs font-bold text-white">{tool.name}</div>
+                    <div className="text-[10px] text-slate-400">/{tool.id}</div>
+                  </div>
+                  <button
+                    onClick={() => toggleTool(tool.id)}
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
+                      isDisabled
+                        ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
+                        : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                    }`}
+                  >
+                    {isDisabled ? "Disabled" : "Active"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: GLOBAL ANNOUNCEMENT */}
+      {activeTab === "announcement" && (
+        <form onSubmit={saveAnnouncement} className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <div>
+            <h3 className="text-sm font-bold text-white">Site-wide Notification Banner</h3>
+            <p className="text-xs text-slate-400">Broadcast maintenance alerts or update messages across all pages.</p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="enableBanner"
+              checked={config.announcement.enabled}
+              onChange={(e) =>
+                setConfig({
+                  ...config,
+                  announcement: { ...config.announcement, enabled: e.target.checked },
+                })
+              }
+              className="h-4 w-4 rounded bg-slate-950 border-slate-700 text-indigo-600 focus:ring-0"
+            />
+            <label htmlFor="enableBanner" className="text-xs font-semibold text-white">
+              Display Announcement Banner
+            </label>
+          </div>
+
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">Banner Text</label>
+            <input
+              type="text"
+              value={config.announcement.message}
+              onChange={(e) =>
+                setConfig({
+                  ...config,
+                  announcement: { ...config.announcement, message: e.target.value },
+                })
+              }
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white outline-none focus:border-indigo-500"
+              placeholder="Enter announcement message..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">Banner Type / Theme</label>
+            <select
+              value={config.announcement.type}
+              onChange={(e: any) =>
+                setConfig({
+                  ...config,
+                  announcement: { ...config.announcement, type: e.target.value },
+                })
+              }
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white"
+            >
+              <option value="info">Info (Indigo)</option>
+              <option value="warning">Warning / Maintenance (Amber)</option>
+              <option value="success">Success / New Feature (Emerald)</option>
+            </select>
+          </div>
+
+          <button
+            type="submit"
+            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-xs transition"
+          >
+            Save Announcement Settings
+          </button>
+        </form>
+      )}
+
+      {/* TAB 4: CAUGHT ERRORS */}
+      {activeTab === "errors" && (
+        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <div>
+            <h3 className="text-sm font-bold text-white">Client-Side Error Log</h3>
+            <p className="text-xs text-slate-400">Recent unhandled runtime exceptions or file processing errors.</p>
+          </div>
+
+          {(!data?.errorLogs || data.errorLogs.length === 0) ? (
+            <p className="text-xs text-emerald-400">✓ No client-side exceptions recorded.</p>
+          ) : (
+            <div className="space-y-2 font-mono text-xs">
+              {data.errorLogs.map((log: any) => (
+                <div key={log.id} className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
+                  <div className="flex justify-between text-slate-500 text-[10px]">
+                    <span>Tool: <strong className="text-slate-300">{log.tool}</strong></span>
+                    <span>{log.timestamp}</span>
+                  </div>
+                  <div className="text-rose-400">{log.message}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 5: AUDIT TRAIL */}
+      {activeTab === "audit" && (
+        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <div>
+            <h3 className="text-sm font-bold text-white">Admin Security Access Log</h3>
+            <p className="text-xs text-slate-400">Recent authenticated dashboard unlocks.</p>
+          </div>
+
+          <div className="space-y-2 text-xs">
+            {(data?.auditLogs || []).map((audit: any, i: number) => (
+              <div key={i} className="flex items-center justify-between p-3 bg-slate-950 border border-slate-800 rounded-xl">
+                <span className="text-slate-300 font-semibold">{audit.device}</span>
+                <span className="text-slate-500 text-[11px]">{audit.timestamp}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </main>
   );
 }

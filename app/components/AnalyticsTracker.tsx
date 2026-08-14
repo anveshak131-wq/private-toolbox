@@ -1,37 +1,39 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { trackView, getSiteConfig, SiteConfig } from "../lib/analytics";
 
 export default function AnalyticsTracker() {
   const pathname = usePathname();
+  const [config, setConfig] = useState<SiteConfig | null>(null);
 
   useEffect(() => {
-    if (typeof window === "undefined" || pathname.startsWith("/admin")) return;
-
-    // 1. Increment Total Pageviews
-    const currentViews = parseInt(localStorage.getItem("pt_total_views") || "0", 10);
-    localStorage.setItem("pt_total_views", (currentViews + 1).toString());
-
-    // 2. Track Unique Visitor Session
-    if (!sessionStorage.getItem("pt_session_active")) {
-      sessionStorage.setItem("pt_session_active", "true");
-      const uniqueVisits = parseInt(localStorage.getItem("pt_unique_visitors") || "0", 10);
-      localStorage.setItem("pt_unique_visitors", (uniqueVisits + 1).toString());
-    }
-
-    // 3. Track Tool Popularity
-    const toolStats = JSON.parse(localStorage.getItem("pt_tool_stats") || "{}");
-    const route = pathname === "/" ? "Home" : pathname.replace("/", "");
-    toolStats[route] = (toolStats[route] || 0) + 1;
-    localStorage.setItem("pt_tool_stats", JSON.stringify(toolStats));
-
-    // 4. Log Visit Timestamp
-    const logs = JSON.parse(localStorage.getItem("pt_visit_logs") || "[]");
-    logs.push({ path: pathname, time: new Date().toISOString() });
-    if (logs.length > 50) logs.shift();
-    localStorage.setItem("pt_visit_logs", JSON.stringify(logs));
+    trackView(pathname);
+    setConfig(getSiteConfig());
   }, [pathname]);
 
-  return null;
+  if (!config?.announcement?.enabled || !config?.announcement?.message) {
+    return null;
+  }
+
+  const bgStyles =
+    {
+      info: "bg-indigo-500/10 border-indigo-500/20 text-indigo-300",
+      warning: "bg-amber-500/10 border-amber-500/20 text-amber-300",
+      success: "bg-emerald-500/10 border-emerald-500/20 text-emerald-300",
+    }[config.announcement.type] ||
+    "bg-indigo-500/10 border-indigo-500/20 text-indigo-300";
+
+  return (
+    <aside
+      aria-label="System Announcement"
+      className={`w-full border-b py-2 px-4 text-center text-xs font-medium backdrop-blur-md ${bgStyles}`}
+    >
+      <div className="max-w-6xl mx-auto flex items-center justify-center gap-2">
+        <span>📢</span>
+        <span>{config.announcement.message}</span>
+      </div>
+    </aside>
+  );
 }
