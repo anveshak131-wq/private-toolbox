@@ -52,7 +52,9 @@ export default function PdfOrganizerPage() {
       copiedPages.forEach((page) => newDoc.addPage(page));
 
       const outPdfBytes = await newDoc.save();
-      const blob = new Blob([outPdfBytes as Uint8Array], { type: "application/pdf" });
+      
+      // Fixed Blob construction with any cast to avoid TypeScript ArrayBufferLike error
+      const blob = new Blob([outPdfBytes as any], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
 
       const link = document.createElement("a");
