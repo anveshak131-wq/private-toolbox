@@ -26,10 +26,10 @@ export default function AnalyticsTracker() {
     toolStats[route] = (toolStats[route] || 0) + 1;
     localStorage.setItem("pt_tool_stats", JSON.stringify(toolStats));
 
-    // 4. Log Visit Timestamp for Daily Chart
+    // 4. Log Visit Timestamp
     const logs = JSON.parse(localStorage.getItem("pt_visit_logs") || "[]");
     logs.push({ path: pathname, time: new Date().toISOString() });
-    if (logs.length > 50) logs.shift(); // Keep latest 50
+    if (logs.length > 50) logs.shift();
     localStorage.setItem("pt_visit_logs", JSON.stringify(logs));
   }, [pathname]);
 
