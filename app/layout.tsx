@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
-import Script from "next/script";
 import "./globals.css";
 import Footer from "./components/Footer";
 import Logo from "./components/Logo";
@@ -18,9 +17,32 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Private Web Utility Toolbox | 100% Client-Side",
+  metadataBase: new URL("https://private-toolbox.pages.dev"),
+  title: {
+    default: "PrivateToolbox | 100% Client-Side Web Utility Tools",
+    template: "%s | PrivateToolbox",
+  },
   description:
-    "Fast, free, and completely private web micro-tools. Compress images, merge PDFs, and convert files entirely inside your browser.",
+    "Free, fast, and completely private browser tools. Compress images, merge PDFs, and redact screenshots with zero server uploads.",
+  keywords: [
+    "client-side image compressor",
+    "private pdf merger no upload",
+    "free screenshot redactor online",
+    "browser utility tools",
+  ],
+  openGraph: {
+    title: "PrivateToolbox | 100% Client-Side Web Utility Tools",
+    description:
+      "Compress images, merge PDFs, and generate QR codes privately inside your browser. No file uploads.",
+    url: "https://private-toolbox.pages.dev",
+    siteName: "PrivateToolbox",
+    locale: "en_US",
+    type: "website",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -31,6 +53,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
+        {/* Google AdSense Verification Script in <head> */}
         <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1912611953756071"
@@ -40,10 +63,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white relative overflow-x-hidden`}
       >
-        {/* Background Analytics Tracker */}
+        {/* Client-Side Visitor Tracker */}
         <AnalyticsTracker />
 
-        {/* Ambient Glow FX */}
+        {/* Ambient Background Glow Effects */}
         <div className="fixed inset-0 pointer-events-none z-0 flex justify-center">
           <div className="w-[600px] h-[300px] bg-indigo-600/15 blur-[120px] rounded-full top-[-100px] absolute"></div>
           <div className="w-[400px] h-[250px] bg-emerald-500/10 blur-[100px] rounded-full top-[200px] right-10 absolute hidden md:block"></div>
@@ -65,7 +88,7 @@ export default function RootLayout({
                 href="https://rzp.io/rzp/0ZgwLn17"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-xl transition shadow-lg shadow-emerald-600/20"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-xl transition shadow-lg shadow-emerald-600/20 font-semibold"
               >
                 ⚡ Support
               </a>
