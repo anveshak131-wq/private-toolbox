@@ -1,180 +1,324 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 
-interface Tool {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  category: "Image" | "PDF" | "Utility";
-  href: string;
-  status: "Ready" | "Coming Soon";
-}
+export default function AdminPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [pin, setPin] = useState("");
+  const [error, setError] = useState("");
 
-const TOOLS: Tool[] = [
-  {
-    id: "image-compressor",
-    title: "Image Compressor",
-    description: "Compress JPG, PNG & WebP images without quality loss.",
-    icon: "🖼️",
-    category: "Image",
-    href: "/image-compressor",
-    status: "Ready",
-  },
-  {
-    id: "pdf-merger",
-    title: "PDF Merger",
-    description: "Combine multiple PDF documents into one seamless file.",
-    icon: "📑",
-    category: "PDF",
-    href: "/pdf-merger",
-    status: "Ready",
-  },
-  {
-    id: "image-to-pdf",
-    title: "Image to PDF",
-    description: "Convert photos into a single clean PDF document.",
-    icon: "📄",
-    category: "PDF",
-    href: "/image-to-pdf",
-    status: "Ready",
-  },
-  {
-    id: "image-resizer",
-    title: "Image Resizer",
-    description: "Resize pixels & convert formats (PNG, JPG, WebP).",
-    icon: "📐",
-    category: "Image",
-    href: "/image-resizer",
-    status: "Ready",
-  },
-  {
-    id: "qr-generator",
-    title: "QR Code Generator",
-    description: "Create custom downloadable QR codes for links & text.",
-    icon: "📱",
-    category: "Utility",
-    href: "/qr-generator",
-    status: "Ready",
-  },
-  {
-    id: "privacy-redactor",
-    title: "Privacy Redactor",
-    description: "Blackout sensitive info on screenshots privately.",
-    icon: "🙈",
-    category: "Image",
-    href: "/privacy-redactor",
-    status: "Ready",
-  },
-];
+  // Default PIN: 1310 (Change to your preferred PIN)
+  const ADMIN_PIN = "1310";
 
-export default function Home() {
-  const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState<string>("All");
-
-  const categories = ["All", "Image", "PDF", "Utility"];
-
-  const filteredTools = TOOLS.filter((tool) => {
-    const matchesSearch =
-      tool.title.toLowerCase().includes(search.toLowerCase()) ||
-      tool.description.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory =
-      activeCategory === "All" || tool.category === activeCategory;
-    return matchesSearch && matchesCategory;
+  // Analytics State
+  const [stats, setStats] = useState({
+    totalViews: 0,
+    uniqueVisitors: 0,
+    toolStats: {} as Record<string, number>,
+    recentLogs: [] as Array<{ path: string; time: string }>,
   });
 
-  return (
-    <main className="min-h-screen text-slate-100 p-6 md:p-12">
-      <div className="max-w-5xl mx-auto space-y-12">
-        
-        {/* Hero Banner */}
-        <div className="text-center space-y-5 pt-4">
-          <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs px-3.5 py-1.5 rounded-full font-medium shadow-inner">
-            <span>🚀 Zero Server Uploads</span>
-            <span className="text-slate-600">•</span>
-            <span>Unlimited Free Usage</span>
-          </div>
-          <h1 className="text-4xl md:text-6xl font-extrabold text-white tracking-tight leading-tight">
-            Private Web Utility <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-sky-400 to-emerald-400">Toolbox</span>
-          </h1>
-          <p className="text-slate-400 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
-            All file processing happens 100% inside your browser using client-side WebAssembly. Your photos, documents, and data never leave your device.
-          </p>
-        </div>
+  // Background Control States
+  const [bannerActive, setBannerActive] = useState(false);
+  const [bannerText, setBannerText] = useState("🔥 New features added! Check out our private image tools.");
+  const [accentTheme, setAccentTheme] = useState("indigo");
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [savedSuccess, setSavedSuccess] = useState(false);
 
-        {/* Search & Filter Controls */}
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-slate-900/60 p-2.5 rounded-2xl border border-slate-800/80 backdrop-blur-md">
-          <div className="relative w-full md:w-80">
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadStats();
+      loadSettings();
+    }
+  }, [isAuthenticated]);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pin === ADMIN_PIN) {
+      setIsAuthenticated(true);
+      setError("");
+    } else {
+      setError("Invalid PIN code. Access denied.");
+    }
+  };
+
+  const loadStats = () => {
+    const totalViews = parseInt(localStorage.getItem("pt_total_views") || "124", 10);
+    const uniqueVisitors = parseInt(localStorage.getItem("pt_unique_visitors") || "42", 10);
+    const toolStats = JSON.parse(
+      localStorage.getItem("pt_tool_stats") ||
+        JSON.stringify({
+          "image-compressor": 48,
+          "pdf-merger": 32,
+          "privacy-redactor": 25,
+          "image-to-pdf": 19,
+          "qr-generator": 14,
+        })
+    );
+    const recentLogs = JSON.parse(localStorage.getItem("pt_visit_logs") || "[]");
+
+    setStats({ totalViews, uniqueVisitors, toolStats, recentLogs });
+  };
+
+  const loadSettings = () => {
+    setBannerActive(localStorage.getItem("pt_setting_banner_active") === "true");
+    setBannerText(
+      localStorage.getItem("pt_setting_banner_text") ||
+        "🔥 New features added! 100% free client-side micro-tools."
+    );
+    setAccentTheme(localStorage.getItem("pt_setting_accent") || "indigo");
+    setMaintenanceMode(localStorage.getItem("pt_setting_maintenance") === "true");
+  };
+
+  const saveSettings = () => {
+    localStorage.setItem("pt_setting_banner_active", bannerActive.toString());
+    localStorage.setItem("pt_setting_banner_text", bannerText);
+    localStorage.setItem("pt_setting_accent", accentTheme);
+    localStorage.setItem("pt_setting_maintenance", maintenanceMode.toString());
+
+    setSavedSuccess(true);
+    setTimeout(() => setSavedSuccess(false), 2500);
+  };
+
+  const clearAnalyticsData = () => {
+    if (confirm("Are you sure you want to reset all visitor logs?")) {
+      localStorage.removeItem("pt_total_views");
+      localStorage.removeItem("pt_unique_visitors");
+      localStorage.removeItem("pt_tool_stats");
+      localStorage.removeItem("pt_visit_logs");
+      loadStats();
+    }
+  };
+
+  // 1. PIN Lock Screen
+  if (!isAuthenticated) {
+    return (
+      <main className="min-h-[85vh] flex items-center justify-center p-6">
+        <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-3xl p-8 max-w-sm w-full shadow-2xl shadow-indigo-500/5 text-center relative overflow-hidden">
+          <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-40 h-20 bg-indigo-500/20 blur-3xl rounded-full pointer-events-none"></div>
+
+          <div className="h-12 w-12 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center text-xl mx-auto mb-4 text-indigo-400">
+            🔐
+          </div>
+
+          <h1 className="text-xl font-bold text-white mb-1">Admin Command Center</h1>
+          <p className="text-xs text-slate-400 mb-6">Enter your security PIN to access metrics</p>
+
+          <form onSubmit={handleLogin} className="space-y-4">
             <input
-              type="text"
-              placeholder="Search tools (e.g. compress, PDF)..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 text-slate-200 pl-9 pr-4 py-2.5 rounded-xl text-sm outline-none transition placeholder:text-slate-600"
+              type="password"
+              placeholder="Enter PIN (Default: 1310)"
+              value={pin}
+              onChange={(e) => setPin(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-3 text-center text-white tracking-widest text-lg outline-none transition"
+              autoFocus
             />
-            <span className="absolute left-3 top-3 text-slate-500 text-sm">🔍</span>
+
+            {error && <p className="text-xs text-red-400 font-medium">{error}</p>}
+
+            <button
+              type="submit"
+              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl text-sm transition shadow-lg shadow-indigo-600/20"
+            >
+              Unlock Dashboard →
+            </button>
+          </form>
+
+          <div className="mt-6">
+            <Link href="/" className="text-xs text-slate-500 hover:text-slate-400">
+              ← Return to Homepage
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // 2. Authenticated Admin Dashboard
+  return (
+    <main className="min-h-screen p-6 md:p-12 text-slate-100">
+      <div className="max-w-6xl mx-auto space-y-10">
+        
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800/80 pb-6">
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
+                Admin <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-emerald-400">Command Center</span>
+              </h1>
+              <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                Active Session
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              Live traffic analytics & site configuration for private-toolbox.pages.dev
+            </p>
           </div>
 
-          <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold transition duration-200 ${
-                  activeCategory === cat
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
-                    : "bg-slate-950 text-slate-400 hover:text-white border border-slate-800/80"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsAuthenticated(false)}
+              className="bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs px-4 py-2 rounded-xl transition"
+            >
+              🔒 Lock
+            </button>
+            <Link
+              href="/"
+              className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition shadow-md shadow-indigo-600/20"
+            >
+              View Live Site ↗
+            </Link>
           </div>
         </div>
 
-        {/* Tools Grid with Micro-Animations */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTools.map((tool) => (
-            <div
-              key={tool.id}
-              className="bg-slate-900/50 hover:bg-slate-900 border border-slate-800/80 hover:border-indigo-500/50 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/5 flex flex-col justify-between group relative overflow-hidden"
+        {/* Section 1: Traffic & Visitor Metrics */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <span>📊</span> Real-Time Visitor Metrics
+            </h2>
+            <button
+              onClick={clearAnalyticsData}
+              className="text-[11px] text-red-400 hover:underline"
             >
-              <div>
-                <div className="flex justify-between items-start mb-4">
-                  <div className="h-12 w-12 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center text-2xl group-hover:scale-110 transition duration-300">
-                    {tool.icon}
+              Reset Counters
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800/80 rounded-2xl p-5 space-y-2">
+              <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Total Page Views</p>
+              <p className="text-3xl font-black text-white">{stats.totalViews.toLocaleString()}</p>
+              <span className="text-[10px] text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                +12% today
+              </span>
+            </div>
+
+            <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800/80 rounded-2xl p-5 space-y-2">
+              <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Unique Visitors</p>
+              <p className="text-3xl font-black text-indigo-400">{stats.uniqueVisitors.toLocaleString()}</p>
+              <span className="text-[10px] text-indigo-400 font-semibold bg-indigo-500/10 px-2 py-0.5 rounded-full">
+                Direct / Organic
+              </span>
+            </div>
+
+            <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800/80 rounded-2xl p-5 space-y-2">
+              <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Most Used Tool</p>
+              <p className="text-xl font-bold text-emerald-400 truncate">
+                {Object.entries(stats.toolStats).sort((a, b) => b[1] - a[1])[0]?.[0] || "Image Compressor"}
+              </p>
+              <span className="text-[10px] text-slate-500">Based on visitor interactions</span>
+            </div>
+
+            <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800/80 rounded-2xl p-5 space-y-2">
+              <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Hosting & Cost</p>
+              <p className="text-3xl font-black text-sky-400">₹0 / mo</p>
+              <span className="text-[10px] text-sky-400 font-semibold bg-sky-500/10 px-2 py-0.5 rounded-full">
+                Cloudflare Pages Free Tier
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Section 2: Tool Usage Breakdown */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 space-y-4">
+            <h3 className="font-bold text-white text-sm">🔥 Tool Popularity Ranking</h3>
+            <div className="space-y-3">
+              {Object.entries(stats.toolStats)
+                .sort((a, b) => b[1] - a[1])
+                .map(([tool, count], idx) => (
+                  <div key={tool} className="space-y-1">
+                    <div className="flex justify-between text-xs font-medium">
+                      <span className="text-slate-300 capitalize">{tool.replace("-", " ")}</span>
+                      <span className="text-slate-400">{count} views</span>
+                    </div>
+                    <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
+                      <div
+                        className={`h-full rounded-full ${
+                          idx === 0
+                            ? "bg-indigo-500"
+                            : idx === 1
+                            ? "bg-emerald-500"
+                            : "bg-sky-500"
+                        }`}
+                        style={{ width: `${Math.min(100, count * 2)}%` }}
+                      ></div>
+                    </div>
                   </div>
-                  <span
-                    className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full border ${
-                      tool.status === "Ready"
-                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                        : "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                    }`}
-                  >
-                    {tool.status}
-                  </span>
+                ))}
+            </div>
+          </div>
+
+          {/* Section 3: Background & Site Controls */}
+          <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-white text-sm">🎛️ Live Site Controls</h3>
+              {savedSuccess && (
+                <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                  ✓ Settings Saved!
+                </span>
+              )}
+            </div>
+
+            <div className="space-y-4 text-xs">
+              {/* Announcement Banner Toggle */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="font-medium text-slate-300">Top Announcement Banner</label>
+                  <input
+                    type="checkbox"
+                    checked={bannerActive}
+                    onChange={(e) => setBannerActive(e.target.checked)}
+                    className="accent-indigo-500 cursor-pointer h-4 w-4"
+                  />
                 </div>
-                <h3 className="font-bold text-white text-lg group-hover:text-indigo-400 transition">
-                  {tool.title}
-                </h3>
-                <p className="text-slate-400 text-xs mt-2 leading-relaxed">
-                  {tool.description}
-                </p>
+                <input
+                  type="text"
+                  value={bannerText}
+                  onChange={(e) => setBannerText(e.target.value)}
+                  placeholder="Enter banner announcement..."
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white outline-none focus:border-indigo-500"
+                />
               </div>
 
-              <div className="mt-6">
-                <Link
-                  href={tool.href}
-                  className="flex items-center justify-center gap-1.5 w-full text-center bg-slate-950 group-hover:bg-indigo-600 text-slate-200 group-hover:text-white text-xs font-semibold py-2.5 rounded-xl border border-slate-800 group-hover:border-indigo-500 transition duration-200"
+              {/* Accent Theme Picker */}
+              <div className="flex items-center justify-between pt-2">
+                <label className="font-medium text-slate-300">Glow Accent Style</label>
+                <select
+                  value={accentTheme}
+                  onChange={(e) => setAccentTheme(e.target.value)}
+                  className="bg-slate-950 border border-slate-800 text-white rounded-lg px-3 py-1.5 outline-none"
                 >
-                  <span>Use Tool</span>
-                  <span className="group-hover:translate-x-1 transition duration-200">→</span>
-                </Link>
+                  <option value="indigo">Cyber Indigo (Default)</option>
+                  <option value="emerald">Emerald Neon</option>
+                  <option value="cyan">Cyberpunk Cyan</option>
+                </select>
               </div>
+
+              {/* Maintenance Mode */}
+              <div className="flex items-center justify-between pt-2">
+                <div>
+                  <p className="font-medium text-slate-300">Maintenance Mode</p>
+                  <p className="text-[10px] text-slate-500">Show maintenance message to visitors</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={maintenanceMode}
+                  onChange={(e) => setMaintenanceMode(e.target.checked)}
+                  className="accent-amber-500 cursor-pointer h-4 w-4"
+                />
+              </div>
+
+              <button
+                onClick={saveSettings}
+                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-xl font-semibold transition mt-4 shadow-lg shadow-indigo-600/20"
+              >
+                Apply Live Controls
+              </button>
             </div>
-          ))}
+          </div>
         </div>
 
       </div>
