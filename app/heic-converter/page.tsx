@@ -4,7 +4,6 @@ export const dynamic = "force-static";
 
 import React, { useState } from "react";
 import Link from "next/link";
-import heic2any from "heic2any";
 
 export default function HeicConverterPage() {
   const [loading, setLoading] = useState(false);
@@ -19,6 +18,10 @@ export default function HeicConverterPage() {
     setConvertedUrl(null);
 
     try {
+      // Dynamic import to prevent SSR 'window is not defined' build errors
+      const heic2anyModule = await import("heic2any");
+      const heic2any = heic2anyModule.default || heic2anyModule;
+
       const resultBlob = await heic2any({
         blob: file,
         toType: format,
