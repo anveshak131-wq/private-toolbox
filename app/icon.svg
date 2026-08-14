@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="cyberIndigoIcon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818CF8" />
+      <stop offset="50%" stop-color="#4F46E5" />
+      <stop offset="100%" stop-color="#312E81" />
+    </linearGradient>
+    <linearGradient id="cyberEmeraldIcon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="glassFacetIcon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.35" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.05" />
+    </linearGradient>
+  </defs>
+
+  <!-- Dark container background for tab visibility -->
+  <rect width="128" height="128" rx="28" fill="#090D16" />
+
+  <!-- Shield Shape -->
+  <path
+    d="M64 18L98 33V68C98 88 64 108 64 108C64 108 30 88 30 68V33L64 18Z"
+    fill="url(#cyberIndigoIcon)"
+    fill-opacity="0.3"
+    stroke="url(#cyberIndigoIcon)"
+    stroke-width="5"
+    stroke-linejoin="round"
+  />
+  <path d="M64 18L98 33V68C98 88 64 108 64 108V18Z" fill="url(#glassFacetIcon)" />
+
+  <!-- Tool Key / P Glyphs -->
+  <path
+    d="M50 43V77M50 43H70C76.6 43 82 48.4 82 55C82 61.6 76.6 67 70 67H50"
+    stroke="url(#cyberEmeraldIcon)"
+    stroke-width="7"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path d="M42 35H86" stroke="#F8FAFC" stroke-width="6" stroke-linecap="round" />
+  <circle cx="64" cy="55" r="5" fill="#34D399" />
+</svg>
