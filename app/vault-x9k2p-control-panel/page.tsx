@@ -6,8 +6,8 @@ import Link from "next/link";
 
 export default function SecretAdminPage() {
   // ⚙️ CONFIGURATION: Set your Google Client ID and Authorized Email
-  const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"; // Replace with your Client ID
-  const AUTHORIZED_EMAIL = "your-google-email@gmail.com"; // Replace with your exact Google Email
+  const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com660955029020-03hv98teq5d5et123cf7t65vv2jrmd3o.apps.googleusercontent.com"; // Replace with your Client ID
+  const AUTHORIZED_EMAIL = "anveshkoganti54@gmail.com"; // Replace with your exact Google Email
 
   const [user, setUser] = useState<{ name: string; email: string; picture: string } | null>(null);
   const [authError, setAuthError] = useState("");
