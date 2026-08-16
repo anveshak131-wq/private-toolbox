@@ -9,10 +9,31 @@ export interface ToolUsageStat {
     message: string;
   }
   
+  export interface FeedbackItem {
+    id: string;
+    timestamp: string;
+    type: "feature" | "bug" | "feedback";
+    tool?: string;
+    message: string;
+    contact?: string;
+    status: "new" | "reviewed" | "archived";
+  }
+  
   export interface AdminAuditLog {
     timestamp: string;
     device: string;
     ipPlaceholder: string;
+  }
+  
+  export interface WebhookConfig {
+    enabled: boolean;
+    type: "discord" | "telegram";
+    discordWebhookUrl: string;
+    telegramBotToken: string;
+    telegramChatId: string;
+    notifyOnSupport: boolean;
+    notifyOnError: boolean;
+    notifyOnFeedback: boolean;
   }
   
   export interface SiteConfig {
@@ -22,6 +43,7 @@ export interface ToolUsageStat {
       type: "info" | "warning" | "success";
     };
     disabledTools: string[];
+    webhooks: WebhookConfig;
   }
   
   const STORAGE_KEYS = {
@@ -30,12 +52,11 @@ export interface ToolUsageStat {
     SUPPORT_CLICKS: "pt_analytics_support_clicks",
     DEVICE_STATS: "pt_analytics_device_stats",
     ERROR_LOGS: "pt_analytics_error_logs",
+    FEEDBACK_ITEMS: "pt_analytics_feedback_items",
     SITE_CONFIG: "pt_site_config",
     AUDIT_LOGS: "pt_admin_audit_logs",
-    ADMIN_AUTH: "pt_admin_session",
   };
   
-  // Safe localStorage access
   const getStorage = <T>(key: string, fallback: T): T => {
     if (typeof window === "undefined") return fallback;
     try {
@@ -55,20 +76,59 @@ export interface ToolUsageStat {
     }
   };
   
-  // Track Page & Tool Views
+  // Dispatch Discord or Telegram Webhooks
+  export const sendWebhookNotification = async (title: string, message: string, color: number = 0x6366f1) => {
+    const config = getSiteConfig();
+    const { webhooks } = config;
+  
+    if (!webhooks.enabled) return;
+  
+    try {
+      if (webhooks.type === "discord" && webhooks.discordWebhookUrl) {
+        await fetch(webhooks.discordWebhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            embeds: [
+              {
+                title,
+                description: message,
+                color,
+                footer: { text: "PrivateToolbox System Alert" },
+                timestamp: new Date().toISOString(),
+              },
+            ],
+          }),
+        });
+      } else if (webhooks.type === "telegram" && webhooks.telegramBotToken && webhooks.telegramChatId) {
+        const text = `*${title}*\n\n${message}`;
+        const url = `https://api.telegram.org/bot${webhooks.telegramBotToken}/sendMessage`;
+        await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: webhooks.telegramChatId,
+            text,
+            parse_mode: "Markdown",
+          }),
+        });
+      }
+    } catch (err) {
+      console.warn("Webhook dispatch failed:", err);
+    }
+  };
+  
   export const trackView = (path: string) => {
     if (typeof window === "undefined" || path.includes("vault")) return;
   
     const total = getStorage<number>(STORAGE_KEYS.PAGE_VIEWS, 0);
     setStorage(STORAGE_KEYS.PAGE_VIEWS, total + 1);
   
-    // Track specific tool
     const toolViews = getStorage<ToolUsageStat>(STORAGE_KEYS.TOOL_VIEWS, {});
     const cleanPath = path.replace("/", "") || "homepage";
     toolViews[cleanPath] = (toolViews[cleanPath] || 0) + 1;
     setStorage(STORAGE_KEYS.TOOL_VIEWS, toolViews);
   
-    // Track Device Type
     const device = window.innerWidth < 768 ? "Mobile" : window.innerWidth < 1024 ? "Tablet" : "Desktop";
     const deviceStats = getStorage<{ [key: string]: number }>(STORAGE_KEYS.DEVICE_STATS, {
       Desktop: 0,
@@ -79,13 +139,20 @@ export interface ToolUsageStat {
     setStorage(STORAGE_KEYS.DEVICE_STATS, deviceStats);
   };
   
-  // Track Support Conversions
   export const trackSupportClick = () => {
     const current = getStorage<number>(STORAGE_KEYS.SUPPORT_CLICKS, 0);
     setStorage(STORAGE_KEYS.SUPPORT_CLICKS, current + 1);
+  
+    const config = getSiteConfig();
+    if (config.webhooks.notifyOnSupport) {
+      sendWebhookNotification(
+        "☕ Support Conversion Detected!",
+        "A visitor just clicked the Razorpay support/donation link.",
+        0x10b981
+      );
+    }
   };
   
-  // Log Client Errors
   export const logError = (tool: string, message: string) => {
     const logs = getStorage<ErrorLogItem[]>(STORAGE_KEYS.ERROR_LOGS, []);
     const newLog: ErrorLogItem = {
@@ -95,17 +162,78 @@ export interface ToolUsageStat {
       message,
     };
     setStorage(STORAGE_KEYS.ERROR_LOGS, [newLog, ...logs].slice(0, 50));
+  
+    const config = getSiteConfig();
+    if (config.webhooks.notifyOnError) {
+      sendWebhookNotification(
+        `🚨 Client Error in /${tool}`,
+        `Error details: \`${message}\``,
+        0xef4444
+      );
+    }
   };
   
-  // Config & Tool Flags
+  // Feedback Management
+  export const submitUserFeedback = async (
+    type: "feature" | "bug" | "feedback",
+    message: string,
+    tool?: string,
+    contact?: string
+  ) => {
+    const items = getStorage<FeedbackItem[]>(STORAGE_KEYS.FEEDBACK_ITEMS, []);
+    const newItem: FeedbackItem = {
+      id: Math.random().toString(36).substring(2, 9),
+      timestamp: new Date().toLocaleTimeString() + ", " + new Date().toLocaleDateString(),
+      type,
+      tool,
+      message,
+      contact,
+      status: "new",
+    };
+    setStorage(STORAGE_KEYS.FEEDBACK_ITEMS, [newItem, ...items].slice(0, 100));
+  
+    const config = getSiteConfig();
+    if (config.webhooks.notifyOnFeedback) {
+      sendWebhookNotification(
+        `📩 New User Submission: ${type.toUpperCase()}`,
+        `**Tool:** ${tool || "General"}\n**Message:** ${message}\n**Contact:** ${contact || "Anonymous"}`,
+        0x3b82f6
+      );
+    }
+  };
+  
+  export const updateFeedbackStatus = (id: string, status: "new" | "reviewed" | "archived") => {
+    const items = getStorage<FeedbackItem[]>(STORAGE_KEYS.FEEDBACK_ITEMS, []);
+    const updated = items.map((item) => (item.id === id ? { ...item, status } : item));
+    setStorage(STORAGE_KEYS.FEEDBACK_ITEMS, updated);
+  };
+  
+  export const deleteFeedbackItem = (id: string) => {
+    const items = getStorage<FeedbackItem[]>(STORAGE_KEYS.FEEDBACK_ITEMS, []);
+    setStorage(
+      STORAGE_KEYS.FEEDBACK_ITEMS,
+      items.filter((item) => item.id !== id)
+    );
+  };
+  
   export const getSiteConfig = (): SiteConfig => {
     return getStorage<SiteConfig>(STORAGE_KEYS.SITE_CONFIG, {
       announcement: {
         enabled: false,
-        message: "⚡ All processing happens 100% locally in your browser memory.",
+        message: "⚡ All operations execute locally in your browser memory.",
         type: "info",
       },
       disabledTools: [],
+      webhooks: {
+        enabled: false,
+        type: "discord",
+        discordWebhookUrl: "",
+        telegramBotToken: "",
+        telegramChatId: "",
+        notifyOnSupport: true,
+        notifyOnError: true,
+        notifyOnFeedback: true,
+      },
     });
   };
   
@@ -113,7 +241,6 @@ export interface ToolUsageStat {
     setStorage(STORAGE_KEYS.SITE_CONFIG, newConfig);
   };
   
-  // Get Full Analytics Data
   export const getAnalyticsData = () => {
     return {
       totalViews: getStorage<number>(STORAGE_KEYS.PAGE_VIEWS, 0),
@@ -125,11 +252,11 @@ export interface ToolUsageStat {
         Tablet: 0,
       }),
       errorLogs: getStorage<ErrorLogItem[]>(STORAGE_KEYS.ERROR_LOGS, []),
+      feedbackItems: getStorage<FeedbackItem[]>(STORAGE_KEYS.FEEDBACK_ITEMS, []),
       auditLogs: getStorage<AdminAuditLog[]>(STORAGE_KEYS.AUDIT_LOGS, []),
     };
   };
   
-  // Audit Log for Admin Login
   export const logAdminLogin = () => {
     const audits = getStorage<AdminAuditLog[]>(STORAGE_KEYS.AUDIT_LOGS, []);
     const newEntry: AdminAuditLog = {
@@ -140,7 +267,6 @@ export interface ToolUsageStat {
     setStorage(STORAGE_KEYS.AUDIT_LOGS, [newEntry, ...audits].slice(0, 20));
   };
   
-  // Purge / Reset
   export const resetAnalyticsData = () => {
     if (typeof window === "undefined") return;
     localStorage.removeItem(STORAGE_KEYS.PAGE_VIEWS);

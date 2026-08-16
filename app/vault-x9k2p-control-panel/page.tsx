@@ -12,6 +12,9 @@ import {
   updateSiteConfig,
   resetAnalyticsData,
   logAdminLogin,
+  updateFeedbackStatus,
+  deleteFeedbackItem,
+  sendWebhookNotification,
   SiteConfig,
 } from "../lib/analytics";
 
@@ -37,9 +40,10 @@ const ALL_TOOLS = [
 export default function AdminControlPanel() {
   const [adminUser, setAdminUser] = useState<{ email: string; name: string } | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"metrics" | "tools" | "announcement" | "errors" | "audit">("metrics");
+  const [activeTab, setActiveTab] = useState<"metrics" | "inbox" | "webhooks" | "tools" | "announcement" | "errors">("metrics");
   const [data, setData] = useState<any>(null);
   const [config, setConfig] = useState<SiteConfig>(getSiteConfig());
+  const [testWebhookStatus, setTestWebhookStatus] = useState<string | null>(null);
 
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
 
@@ -52,19 +56,13 @@ export default function AdminControlPanel() {
         setAdminUser({ email, name: decoded.name || email });
         setAuthError(null);
         logAdminLogin();
-        setData(getAnalyticsData());
-        setConfig(getSiteConfig());
+        refreshData();
       } else {
         setAuthError(`Access denied: ${email} is not in the authorized admins whitelist.`);
       }
     } catch {
       setAuthError("Failed to decode Google authentication token.");
     }
-  };
-
-  const handleSignOut = () => {
-    setAdminUser(null);
-    setAuthError(null);
   };
 
   const refreshData = () => {
@@ -83,23 +81,31 @@ export default function AdminControlPanel() {
     updateSiteConfig(newConfig);
   };
 
-  const saveAnnouncement = (e: React.FormEvent) => {
+  const handleSaveWebhooks = (e: React.FormEvent) => {
     e.preventDefault();
     updateSiteConfig(config);
-    alert("Announcement configuration updated successfully!");
+    alert("Webhook alert settings saved successfully!");
   };
 
-  const exportDataJSON = () => {
-    const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(data, null, 2))}`;
-    const dl = document.createElement("a");
-    dl.setAttribute("href", jsonString);
-    dl.setAttribute("download", `privatetoolbox-analytics-${Date.now()}.json`);
-    dl.click();
+  const handleTestWebhook = async () => {
+    setTestWebhookStatus("Sending test alert...");
+    await sendWebhookNotification(
+      "🔔 Test Notification",
+      "Your real-time Discord / Telegram alert connection is working perfectly!",
+      0x6366f1
+    );
+    setTestWebhookStatus("✓ Test alert sent!");
+    setTimeout(() => setTestWebhookStatus(null), 3000);
   };
 
-  const handleResetData = () => {
-    if (confirm("Are you sure you want to purge all analytics logs?")) {
-      resetAnalyticsData();
+  const handleFeedbackStatusChange = (id: string, status: "new" | "reviewed" | "archived") => {
+    updateFeedbackStatus(id, status);
+    refreshData();
+  };
+
+  const handleDeleteFeedback = (id: string) => {
+    if (confirm("Delete this feedback entry?")) {
+      deleteFeedbackItem(id);
       refreshData();
     }
   };
@@ -143,32 +149,25 @@ export default function AdminControlPanel() {
                 Authenticated: {adminUser.email}
               </div>
               <h1 className="text-2xl font-black text-white">Vault Master Control</h1>
-              <p className="text-xs text-slate-400">Manage real-time analytics, tool availability, announcements, and errors.</p>
+              <p className="text-xs text-slate-400">Manage real-time alerts, user request inbox, and tool controls.</p>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={exportDataJSON}
-                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition"
-              >
-                Export JSON
-              </button>
-              <button
-                onClick={handleSignOut}
-                className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-xl text-xs font-semibold transition"
-              >
-                Sign Out
-              </button>
-            </div>
+            <button
+              onClick={() => setAdminUser(null)}
+              className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-xl text-xs font-semibold transition"
+            >
+              Sign Out
+            </button>
           </div>
 
           {/* Navigation Tabs */}
           <div className="flex flex-wrap gap-2 border-b border-slate-800 pb-3 text-xs font-semibold">
             {[
               { id: "metrics", label: "📊 Usage & Metrics" },
+              { id: "inbox", label: `📥 Inbox (${data?.feedbackItems?.filter((f: any) => f.status === "new").length || 0})` },
+              { id: "webhooks", label: "🔔 Webhook Alerts" },
               { id: "tools", label: "⚙️ Tool Killswitches" },
-              { id: "announcement", label: "📢 Global Announcement" },
+              { id: "announcement", label: "📢 Announcement" },
               { id: "errors", label: "🚨 Caught Errors" },
-              { id: "audit", label: "🛡️ Audit Trail" },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -189,54 +188,241 @@ export default function AdminControlPanel() {
             <div className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
-                  <div className="text-xs text-slate-400 font-semibold">Total Page Impressions</div>
+                  <div className="text-xs text-slate-400 font-semibold">Total Page Views</div>
                   <div className="text-3xl font-black text-white mt-1">{data.totalViews}</div>
                 </div>
                 <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
-                  <div className="text-xs text-slate-400 font-semibold">Support Link Clicks</div>
+                  <div className="text-xs text-slate-400 font-semibold">Support Conversions</div>
                   <div className="text-3xl font-black text-indigo-400 mt-1">{data.supportClicks || 0}</div>
                 </div>
                 <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
-                  <div className="text-xs text-slate-400 font-semibold">Support Conversion Rate</div>
+                  <div className="text-xs text-slate-400 font-semibold">Conversion Rate</div>
                   <div className="text-3xl font-black text-emerald-400 mt-1">
                     {data.totalViews ? (((data.supportClicks || 0) / data.totalViews) * 100).toFixed(2) : "0.00"}%
                   </div>
                 </div>
               </div>
-
-              {/* Tool Breakdown */}
-              <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
-                <h3 className="text-sm font-bold text-white">Tool Popularity Breakdown</h3>
-                <div className="space-y-3">
-                  {Object.entries(data.toolViews || {}).length === 0 && (
-                    <p className="text-xs text-slate-500">No tool usage recorded yet.</p>
-                  )}
-                  {Object.entries(data.toolViews || {}).map(([tool, count]: any) => {
-                    const percentage = data.totalViews ? Math.round((count / data.totalViews) * 100) : 0;
-                    return (
-                      <div key={tool} className="space-y-1">
-                        <div className="flex justify-between text-xs font-semibold">
-                          <span className="text-slate-300">/{tool}</span>
-                          <span className="text-slate-400">{count} views ({percentage}%)</span>
-                        </div>
-                        <div className="h-2 w-full bg-slate-950 rounded-full overflow-hidden">
-                          <div className="h-full bg-indigo-500 rounded-full transition-all" style={{ width: `${percentage}%` }} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="pt-4 flex justify-end">
-                <button onClick={handleResetData} className="text-xs text-rose-400 hover:underline">
-                  Purge All Analytics Records
-                </button>
-              </div>
             </div>
           )}
 
-          {/* TAB 2: TOOL TOGGLES */}
+          {/* TAB 2: INBOX */}
+          {activeTab === "inbox" && (
+            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-sm font-bold text-white">User Feedback & Feature Requests</h3>
+                  <p className="text-xs text-slate-400">Incoming requests from the footer & modal widget.</p>
+                </div>
+              </div>
+
+              {(!data?.feedbackItems || data.feedbackItems.length === 0) ? (
+                <div className="py-8 text-center text-xs text-slate-500">Inbox is empty. No user feedback yet.</div>
+              ) : (
+                <div className="space-y-3">
+                  {data.feedbackItems.map((item: any) => (
+                    <div
+                      key={item.id}
+                      className={`p-4 rounded-xl border transition space-y-2 ${
+                        item.status === "new"
+                          ? "bg-slate-950 border-indigo-500/40"
+                          : item.status === "reviewed"
+                          ? "bg-slate-950/60 border-slate-800"
+                          : "bg-slate-950/30 border-slate-900 opacity-60"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                              item.type === "feature"
+                                ? "bg-indigo-500/20 text-indigo-300"
+                                : item.type === "bug"
+                                ? "bg-rose-500/20 text-rose-300"
+                                : "bg-emerald-500/20 text-emerald-300"
+                            }`}
+                          >
+                            {item.type}
+                          </span>
+                          <span className="text-xs text-slate-400">{item.timestamp}</span>
+                          {item.tool && <span className="text-xs text-slate-500">via {item.tool}</span>}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <select
+                            value={item.status}
+                            onChange={(e: any) => handleFeedbackStatusChange(item.id, e.target.value)}
+                            className="bg-slate-900 border border-slate-800 text-[11px] text-slate-300 rounded-lg px-2 py-1"
+                          >
+                            <option value="new">New</option>
+                            <option value="reviewed">Reviewed</option>
+                            <option value="archived">Archived</option>
+                          </select>
+                          <button
+                            onClick={() => handleDeleteFeedback(item.id)}
+                            className="text-xs text-rose-400 hover:text-rose-300 p-1"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-slate-200 leading-relaxed font-sans">{item.message}</p>
+
+                      {item.contact && (
+                        <div className="text-[11px] text-slate-400">
+                          Contact: <span className="text-slate-200 font-mono">{item.contact}</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 3: WEBHOOK ALERTS */}
+          {activeTab === "webhooks" && (
+            <form onSubmit={handleSaveWebhooks} className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-5">
+              <div>
+                <h3 className="text-sm font-bold text-white">Real-Time Discord & Telegram Alerts</h3>
+                <p className="text-xs text-slate-400">Receive instant push notifications for donations, crashes, and requests.</p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="webhookEnabled"
+                  checked={config.webhooks?.enabled}
+                  onChange={(e) =>
+                    setConfig({
+                      ...config,
+                      webhooks: { ...config.webhooks, enabled: e.target.checked },
+                    })
+                  }
+                  className="h-4 w-4 rounded bg-slate-950 border-slate-700 text-indigo-600 focus:ring-0"
+                />
+                <label htmlFor="webhookEnabled" className="text-xs font-semibold text-white">
+                  Enable Real-Time Webhook Notifications
+                </label>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1">Platform</label>
+                  <select
+                    value={config.webhooks?.type}
+                    onChange={(e: any) =>
+                      setConfig({
+                        ...config,
+                        webhooks: { ...config.webhooks, type: e.target.value },
+                      })
+                    }
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white"
+                  >
+                    <option value="discord">Discord Channel Webhook</option>
+                    <option value="telegram">Telegram Bot</option>
+                  </select>
+                </div>
+              </div>
+
+              {config.webhooks?.type === "discord" ? (
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1">Discord Webhook URL</label>
+                  <input
+                    type="url"
+                    value={config.webhooks?.discordWebhookUrl}
+                    onChange={(e) =>
+                      setConfig({
+                        ...config,
+                        webhooks: { ...config.webhooks, discordWebhookUrl: e.target.value },
+                      })
+                    }
+                    placeholder="https://discord.com/api/webhooks/..."
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white font-mono outline-none focus:border-indigo-500"
+                  />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Telegram Bot Token</label>
+                    <input
+                      type="text"
+                      value={config.webhooks?.telegramBotToken}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          webhooks: { ...config.webhooks, telegramBotToken: e.target.value },
+                        })
+                      }
+                      placeholder="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white font-mono outline-none focus:border-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Telegram Chat ID</label>
+                    <input
+                      type="text"
+                      value={config.webhooks?.telegramChatId}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          webhooks: { ...config.webhooks, telegramChatId: e.target.value },
+                        })
+                      }
+                      placeholder="e.g., 987654321"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white font-mono outline-none focus:border-indigo-500"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2 pt-2">
+                <div className="text-xs font-semibold text-slate-300 mb-2">Notification Triggers:</div>
+                {[
+                  { key: "notifyOnSupport", label: "☕ Support Conversion (Visitor clicks Razorpay link)" },
+                  { key: "notifyOnError", label: "🚨 Tool Runtime Errors & Crashes" },
+                  { key: "notifyOnFeedback", label: "📩 User Requests & Feedback Submissions" },
+                ].map(({ key, label }) => (
+                  <div key={key} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id={key}
+                      checked={(config.webhooks as any)?.[key]}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          webhooks: { ...config.webhooks, [key]: e.target.checked },
+                        })
+                      }
+                      className="h-3.5 w-3.5 rounded bg-slate-950 border-slate-700 text-indigo-600"
+                    />
+                    <label htmlFor={key} className="text-xs text-slate-400">
+                      {label}
+                    </label>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-3 pt-4 border-t border-slate-800">
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-xs transition"
+                >
+                  Save Webhook Settings
+                </button>
+                <button
+                  type="button"
+                  onClick={handleTestWebhook}
+                  className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl text-xs border border-slate-700 transition"
+                >
+                  Send Test Alert
+                </button>
+                {testWebhookStatus && <span className="text-xs text-emerald-400 font-semibold">{testWebhookStatus}</span>}
+              </div>
+            </form>
+          )}
+
+          {/* TAB 4: TOOL KILLSWITCHES */}
           {activeTab === "tools" && (
             <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
               <div>
@@ -273,12 +459,19 @@ export default function AdminControlPanel() {
             </div>
           )}
 
-          {/* TAB 3: GLOBAL ANNOUNCEMENT */}
+          {/* TAB 5: ANNOUNCEMENT */}
           {activeTab === "announcement" && (
-            <form onSubmit={saveAnnouncement} className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                updateSiteConfig(config);
+                alert("Announcement updated!");
+              }}
+              className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4"
+            >
               <div>
                 <h3 className="text-sm font-bold text-white">Site-wide Notification Banner</h3>
-                <p className="text-xs text-slate-400">Broadcast maintenance alerts or updates across all pages.</p>
+                <p className="text-xs text-slate-400">Broadcast maintenance alerts or update messages.</p>
               </div>
 
               <div className="flex items-center gap-3">
@@ -311,7 +504,6 @@ export default function AdminControlPanel() {
                     })
                   }
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white outline-none focus:border-indigo-500"
-                  placeholder="Enter announcement message..."
                 />
               </div>
 
@@ -324,7 +516,7 @@ export default function AdminControlPanel() {
             </form>
           )}
 
-          {/* TAB 4: CAUGHT ERRORS */}
+          {/* TAB 6: CAUGHT ERRORS */}
           {activeTab === "errors" && (
             <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
               <div>
@@ -347,25 +539,6 @@ export default function AdminControlPanel() {
                   ))}
                 </div>
               )}
-            </div>
-          )}
-
-          {/* TAB 5: AUDIT TRAIL */}
-          {activeTab === "audit" && (
-            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
-              <div>
-                <h3 className="text-sm font-bold text-white">Admin Security Access Log</h3>
-                <p className="text-xs text-slate-400">Recent authenticated dashboard unlocks.</p>
-              </div>
-
-              <div className="space-y-2 text-xs">
-                {(data?.auditLogs || []).map((audit: any, i: number) => (
-                  <div key={i} className="flex items-center justify-between p-3 bg-slate-950 border border-slate-800 rounded-xl">
-                    <span className="text-slate-300 font-semibold">{audit.device}</span>
-                    <span className="text-slate-500 text-[11px]">{audit.timestamp}</span>
-                  </div>
-                ))}
-              </div>
             </div>
           )}
         </main>
