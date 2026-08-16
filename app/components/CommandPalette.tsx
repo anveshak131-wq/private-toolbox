@@ -12,18 +12,29 @@ interface ToolItem {
 }
 
 const TOOLS: ToolItem[] = [
-  { id: "image-compressor", name: "Image Compressor", desc: "Lossless & lossy web-worker compression", category: "Images" },
-  { id: "pdf-merger", name: "PDF Merger", desc: "Combine multiple PDF files into one", category: "PDF" },
-  { id: "pdf-organizer", name: "PDF Splitter & Deletor", desc: "Reorder, split, and remove pages", category: "PDF" },
-  { id: "image-to-pdf", name: "Image to PDF", desc: "Convert multiple images to PDF document", category: "PDF" },
-  { id: "image-resizer", name: "Image Resizer", desc: "Batch resize dimensions & aspect ratios", category: "Images" },
-  { id: "privacy-redactor", name: "Privacy Redactor", desc: "Black out sensitive text & metadata", category: "Privacy" },
-  { id: "json-formatter", name: "JSON Formatter", desc: "Prettify, minify, and validate JSON", category: "Developer" },
-  { id: "diff-checker", name: "Text Diff Checker", desc: "Compare side-by-side text differences", category: "Developer" },
-  { id: "base64-codec", name: "Base64 Codec", desc: "Encode & decode string or binary files", category: "Developer" },
-  { id: "svg-converter", name: "SVG Converter", desc: "Convert SVG vectors to PNG, WebP, JPG", category: "Images" },
-  { id: "heic-converter", name: "HEIC to JPEG", desc: "Decode Apple HEIC/HEIF images locally", category: "Images" },
-  { id: "qr-generator", name: "QR Code Generator", desc: "Create high-res SVG/PNG QR codes", category: "Utility" },
+  // Document & PDF
+  { id: "ocr-reader", name: "Client-Side OCR", desc: "Extract text from scanned images", category: "PDF & OCR" },
+  { id: "pdf-watermark", name: "PDF Watermarker", desc: "Stamp watermarks and page numbers", category: "PDF & OCR" },
+  { id: "pdf-security", name: "PDF Security Locker", desc: "Encrypt PDF files with AES-256", category: "PDF & OCR" },
+  { id: "invoice-generator", name: "Invoice PDF Maker", desc: "Create and export tax invoices", category: "PDF & OCR" },
+  { id: "pdf-merger", name: "PDF Merger", desc: "Combine multiple PDF files into one", category: "PDF & OCR" },
+  { id: "pdf-organizer", name: "PDF Splitter & Deletor", desc: "Reorder, split, and delete pages", category: "PDF & OCR" },
+  { id: "image-to-pdf", name: "Image to PDF", desc: "Convert images to PDF document", category: "PDF & OCR" },
+
+  // Image & Vector
+  { id: "signature-drawer", name: "Signature Drawer", desc: "Draw transparent PNG vector signatures", category: "Images" },
+  { id: "social-cropper", name: "Social Aspect Cropper", desc: "Crop images for YouTube/Instagram", category: "Images" },
+  { id: "batch-converter", name: "Batch Format Converter", desc: "Convert PNG/JPG/WebP in bulk", category: "Images" },
+  { id: "color-contrast-simulator", name: "Contrast Checker", desc: "Test WCAG AA/AAA compliance", category: "Images" },
+  { id: "image-compressor", name: "Image Compressor", desc: "Lossless client-side compression", category: "Images" },
+
+  // Privacy & Security
+  { id: "secure-note", name: "Zero-Knowledge Note", desc: "URL hash encrypted secret note", category: "Privacy" },
+  { id: "checksum-verifier", name: "Checksum Verifier", desc: "Verify SHA-256 and SHA-1 hashes", category: "Privacy" },
+  { id: "fingerprint-analyzer", name: "Fingerprint Inspector", desc: "Analyze exposed browser identifiers", category: "Privacy" },
+  { id: "metadata-stripper", name: "Metadata Stripper", desc: "Scrub EXIF and GPS from photos", category: "Privacy" },
+  { id: "file-encryptor", name: "File Encryptor", desc: "AES-256-GCM file encryption", category: "Privacy" },
+  { id: "password-generator", name: "Password Generator", desc: "Random entropy secrets", category: "Privacy" },
 ];
 
 export default function CommandPalette() {
@@ -100,7 +111,7 @@ export default function CommandPalette() {
           <input
             autoFocus
             type="text"
-            placeholder="Search tools... (e.g. compress, pdf, json)"
+            placeholder="Search tools... (e.g. ocr, watermark, encrypt, signature)"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);

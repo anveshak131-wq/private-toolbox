@@ -12,19 +12,50 @@ interface ToolDef {
   title: string;
   description: string;
   badge: string;
-  category: "images" | "pdf" | "dev" | "privacy" | "text";
+  category: "images" | "pdf" | "privacy";
   featured?: boolean;
 }
 
 const TOOLS: ToolDef[] = [
   // Flagships
   {
-    id: "image-compressor",
-    title: "Lossless Image Compressor",
-    description: "Compress PNG, JPG, and WebP files locally with real-time split inspection.",
-    badge: "Flagship",
+    id: "ocr-reader",
+    title: "Client-Side OCR (Text Extractor)",
+    description: "Extract editable text from scanned documents and screenshots via Tesseract Web Workers.",
+    badge: "Wasm OCR",
+    category: "pdf",
+    featured: true,
+  },
+  {
+    id: "signature-drawer",
+    title: "Signature & Watermark Drawer",
+    description: "Draw electronic signatures and export transparent PNG vectors with smooth strokes.",
+    badge: "Vector",
     category: "images",
     featured: true,
+  },
+
+  // Document & PDF Suite
+  {
+    id: "pdf-watermark",
+    title: "PDF Watermark & Page Numberer",
+    description: "Stamp security watermarks and dynamic page counts directly into PDF vector pages.",
+    badge: "Vector Stamp",
+    category: "pdf",
+  },
+  {
+    id: "pdf-security",
+    title: "PDF Password Locker",
+    description: "Lock confidential PDF contracts and bank statements with client-side AES encryption.",
+    badge: "AES-256",
+    category: "pdf",
+  },
+  {
+    id: "invoice-generator",
+    title: "Invoice & Receipt Maker",
+    description: "Generate and calculate formal PDF invoices in browser memory.",
+    badge: "PDF Maker",
+    category: "pdf",
   },
   {
     id: "pdf-organizer",
@@ -32,81 +63,7 @@ const TOOLS: ToolDef[] = [
     description: "Interactive thumbnail grid to rearrange, rotate, split, and delete PDF pages.",
     badge: "Popular",
     category: "pdf",
-    featured: true,
   },
-  // Privacy Suite
-  {
-    id: "metadata-stripper",
-    title: "EXIF & Metadata Stripper",
-    description: "Remove GPS locations, device serials, and timestamps from photos before sharing.",
-    badge: "100% Private",
-    category: "privacy",
-  },
-  {
-    id: "file-encryptor",
-    title: "Client-Side File Encryptor",
-    description: "Encrypt and decrypt files using military-grade AES-256-GCM in browser memory.",
-    badge: "AES-GCM",
-    category: "privacy",
-  },
-  {
-    id: "privacy-redactor",
-    title: "Privacy Redactor",
-    description: "Black out sensitive phone numbers, faces, and classified areas before sharing.",
-    badge: "Sanitizer",
-    category: "privacy",
-  },
-  {
-    id: "password-generator",
-    title: "Password & Passphrase Generator",
-    description: "Generate cryptographically secure passwords with entropy controls.",
-    badge: "WebCrypto",
-    category: "privacy",
-  },
-  // Media & Design Suite
-  {
-    id: "audio-trimmer",
-    title: "In-Browser Audio Trimmer",
-    description: "Trim voice notes, podcasts, and MP3/WAV tracks with sample-accurate playback.",
-    badge: "WebAudio",
-    category: "images",
-  },
-  {
-    id: "color-palette",
-    title: "Color Palette Extractor",
-    description: "Extract dominant hex color swatches directly from any image or brand asset.",
-    badge: "Design",
-    category: "images",
-  },
-  {
-    id: "favicon-generator",
-    title: "Favicon & Icon Generator",
-    description: "Generate multi-resolution 16px to 512px icon bundles in a single .zip file.",
-    badge: "Multi-size",
-    category: "images",
-  },
-  {
-    id: "heic-converter",
-    title: "HEIC to JPEG Converter",
-    description: "Decode Apple iPhone HEIC/HEIF photos directly into standard JPEG format.",
-    badge: "Apple Format",
-    category: "images",
-  },
-  {
-    id: "svg-converter",
-    title: "SVG to Vector/Raster",
-    description: "Rasterize SVG vector illustrations to high-resolution PNG, WebP, or JPEG.",
-    badge: "Hi-DPI",
-    category: "images",
-  },
-  {
-    id: "image-resizer",
-    title: "Image Resizer",
-    description: "Resize dimensions, scale percentages, and convert aspect ratios instantly.",
-    badge: "Lossless",
-    category: "images",
-  },
-  // PDF Suite
   {
     id: "pdf-merger",
     title: "PDF Merger",
@@ -117,68 +74,90 @@ const TOOLS: ToolDef[] = [
   {
     id: "image-to-pdf",
     title: "Image to PDF",
-    description: "Convert batches of JPG, PNG, and WebP images into a single formatted PDF.",
+    description: "Convert batches of JPG, PNG, and WebP images into a single formatted PDF document.",
     badge: "Batch",
     category: "pdf",
   },
-  // Text & Document Suite
+
+  // Images & Graphics Suite
   {
-    id: "markdown-preview",
-    title: "Markdown Live Previewer",
-    description: "Write and preview formatted Markdown and export compiled HTML code.",
-    badge: "Split-view",
-    category: "text",
+    id: "social-cropper",
+    title: "Social Media Aspect Cropper",
+    description: "Crop images to standardized social media dimensions without black bars.",
+    badge: "Auto-Fit",
+    category: "images",
   },
   {
-    id: "word-counter",
-    title: "Word & Read-Time Counter",
-    description: "Compute word count, speaking duration, and character metrics in real-time.",
-    badge: "Analytics",
-    category: "text",
+    id: "batch-converter",
+    title: "Batch Format Converter",
+    description: "Convert batches of PNG, JPG, and WebP images simultaneously into a zipped package.",
+    badge: "Multi-file",
+    category: "images",
   },
   {
-    id: "case-converter",
-    title: "Text Case Converter",
-    description: "Switch text between camelCase, kebab-case, snake_case, and Title Case.",
-    badge: "Developer",
-    category: "text",
-  },
-  // Developer
-  {
-    id: "json-formatter",
-    title: "JSON Formatter & Validator",
-    description: "Prettify, minify, validate, and convert JSON structures with syntax highlighting.",
-    badge: "Dev Tool",
-    category: "dev",
+    id: "color-contrast-simulator",
+    title: "WCAG Contrast Checker",
+    description: "Verify accessibility compliance scores (AA / AAA) for typography and backgrounds.",
+    badge: "WCAG AA",
+    category: "images",
   },
   {
-    id: "diff-checker",
-    title: "Text Diff Checker",
-    description: "Compare two text snippets side-by-side to highlight added and removed lines.",
-    badge: "Line Diff",
-    category: "dev",
+    id: "image-compressor",
+    title: "Lossless Image Compressor",
+    description: "Compress PNG, JPG, and WebP files locally with real-time split inspection.",
+    badge: "Fast Canvas",
+    category: "images",
+  },
+
+  // Privacy & Security Suite
+  {
+    id: "secure-note",
+    title: "Zero-Knowledge Note",
+    description: "Share secret notes where data lives entirely in the URL hash fragment without server storage.",
+    badge: "Hash Encrypted",
+    category: "privacy",
   },
   {
-    id: "base64-codec",
-    title: "Base64 Encoder & Decoder",
-    description: "Encode text and files into Base64 or decode Base64 data URIs instantly.",
-    badge: "Dual-mode",
-    category: "dev",
+    id: "checksum-verifier",
+    title: "File Checksum & Hash Verifier",
+    description: "Compute SHA-256, SHA-512, and SHA-1 checksums locally in browser memory.",
+    badge: "WebCrypto",
+    category: "privacy",
   },
   {
-    id: "qr-generator",
-    title: "QR Code Generator",
-    description: "Generate high-resolution vector and PNG QR codes with zero tracking.",
-    badge: "Customizable",
-    category: "dev",
+    id: "fingerprint-analyzer",
+    title: "Browser Fingerprint Inspector",
+    description: "Inspect the hardware and sandbox identifiers your browser exposes to websites.",
+    badge: "Audit",
+    category: "privacy",
+  },
+  {
+    id: "metadata-stripper",
+    title: "EXIF & Metadata Stripper",
+    description: "Remove GPS locations, device serials, and timestamps from photos before sharing.",
+    badge: "Sanitizer",
+    category: "privacy",
+  },
+  {
+    id: "file-encryptor",
+    title: "Client-Side File Encryptor",
+    description: "Encrypt and decrypt files using military-grade AES-256-GCM in browser memory.",
+    badge: "AES-GCM",
+    category: "privacy",
+  },
+  {
+    id: "password-generator",
+    title: "Password Generator",
+    description: "Generate cryptographically secure passwords with entropy controls.",
+    badge: "Crypto",
+    category: "privacy",
   },
 ];
 
 const WORKFLOW_PRESETS = [
-  { label: "📦 Email Prep", tools: ["image-compressor", "pdf-merger", "image-to-pdf"] },
-  { label: "🛡️ Privacy Cleanse", tools: ["metadata-stripper", "file-encryptor", "privacy-redactor"] },
-  { label: "🎨 Designer Pack", tools: ["color-palette", "favicon-generator", "svg-converter"] },
-  { label: "📝 Writer Toolkit", tools: ["markdown-preview", "word-counter", "case-converter"] },
+  { label: "📑 PDF & OCR", tools: ["ocr-reader", "pdf-watermark", "pdf-security", "invoice-generator"] },
+  { label: "🎨 Graphics & Design", tools: ["signature-drawer", "social-cropper", "batch-converter", "color-contrast-simulator"] },
+  { label: "🛡️ Security & Privacy", tools: ["secure-note", "checksum-verifier", "fingerprint-analyzer", "file-encryptor"] },
 ];
 
 export default function HomePage() {
@@ -212,7 +191,7 @@ export default function HomePage() {
     sounds.playPop();
     try {
       const recents = JSON.parse(localStorage.getItem("pt_recent_tools") || "[]");
-      const updated = [id, ...recents.filter((item: string) => item !== id)].slice(0, 5);
+      const updated = [id, ...recents.filter((item) => item !== id)].slice(0, 5);
       localStorage.setItem("pt_recent_tools", JSON.stringify(updated));
     } catch {}
   };
@@ -223,16 +202,16 @@ export default function HomePage() {
       <section className="text-center space-y-4 max-w-2xl mx-auto pt-2">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold">
           <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>Local In-Browser Memory • Zero Uploads</span>
+          <span>Local In-Browser Memory • Zero Server Uploads</span>
         </div>
         <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-white">
-          Private, Client-Side <br />
+          Private, In-Browser <br />
           <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-            File, Media & Text Tools
+            PDF, Graphics & Security Utilities
           </span>
         </h1>
         <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-          Perform conversions, encryption, EXIF scrubbing, and audio trimming directly in your browser memory.
+          OCR extraction, PDF stamping, digital signatures, social aspect cropping, and cryptographic hashing in client memory.
         </p>
       </section>
 
@@ -298,11 +277,9 @@ export default function HomePage() {
           <div className="flex flex-wrap gap-2">
             {[
               { id: "all", label: "All Utilities" },
-              { id: "privacy", label: "🛡️ Privacy" },
-              { id: "images", label: "🖼️ Media & Audio" },
-              { id: "pdf", label: "📑 PDFs" },
-              { id: "text", label: "📝 Text & Docs" },
-              { id: "dev", label: "💻 Developer" },
+              { id: "pdf", label: "📑 PDF & OCR" },
+              { id: "images", label: "🎨 Graphics & Design" },
+              { id: "privacy", label: "🛡️ Privacy & Security" },
             ].map((tab) => (
               <button
                 key={tab.id}
