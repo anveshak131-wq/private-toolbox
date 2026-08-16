@@ -2,24 +2,36 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { getSiteConfig } from "./lib/analytics";
 import ToolIcon from "./components/ToolIcons";
+import SmartHeroDropzone from "./components/SmartHeroDropzone";
+import { getSiteConfig } from "./lib/analytics";
+import { sounds } from "./lib/soundEffects";
 
 interface ToolDef {
   id: string;
   title: string;
   description: string;
   badge: string;
-  category: "all" | "images" | "pdf" | "dev" | "privacy";
+  category: "images" | "pdf" | "dev" | "privacy";
+  featured?: boolean;
 }
 
 const TOOLS: ToolDef[] = [
   {
     id: "image-compressor",
-    title: "Image Compressor",
-    description: "Compress PNG, JPG, and WebP files locally with instant side-by-side comparison.",
-    badge: "Fast Canvas",
+    title: "Lossless Image Compressor",
+    description: "Compress PNG, JPG, and WebP files locally with real-time before/after split inspection.",
+    badge: "Flagship",
     category: "images",
+    featured: true,
+  },
+  {
+    id: "pdf-organizer",
+    title: "PDF Splitter & Organizer",
+    description: "Interactive thumbnail grid to rearrange, rotate, split, and delete individual PDF pages.",
+    badge: "Popular",
+    category: "pdf",
+    featured: true,
   },
   {
     id: "pdf-merger",
@@ -29,17 +41,10 @@ const TOOLS: ToolDef[] = [
     category: "pdf",
   },
   {
-    id: "pdf-organizer",
-    title: "PDF Splitter & Organizer",
-    description: "Rearrange, split, delete, or rotate pages directly in your browser.",
-    badge: "Interactive",
-    category: "pdf",
-  },
-  {
     id: "image-to-pdf",
     title: "Image to PDF",
-    description: "Convert batches of JPG, PNG, and WebP images into a single formatted PDF.",
-    badge: "Multi-file",
+    description: "Convert batches of JPG, PNG, and WebP images into a single formatted PDF document.",
+    badge: "Batch",
     category: "pdf",
   },
   {
@@ -52,7 +57,7 @@ const TOOLS: ToolDef[] = [
   {
     id: "privacy-redactor",
     title: "Privacy Redactor",
-    description: "Censor confidential numbers, faces, and sensitive areas on documents.",
+    description: "Black out sensitive phone numbers, faces, and classified areas before sharing.",
     badge: "100% Private",
     category: "privacy",
   },
@@ -100,8 +105,17 @@ const TOOLS: ToolDef[] = [
   },
 ];
 
+const WORKFLOW_PRESETS = [
+  { label: "📦 Email Prep", tools: ["image-compressor", "pdf-merger", "image-to-pdf"] },
+  { label: "💻 Developer Pack", tools: ["json-formatter", "diff-checker", "base64-codec"] },
+  { label: "🛡️ Document Cleanse", tools: ["privacy-redactor", "pdf-organizer"] },
+  { label: "📷 iPhone Photos", tools: ["heic-converter", "image-compressor"] },
+];
+
 export default function HomePage() {
-  const [activeTab, setActiveTab] = useState<"all" | "images" | "pdf" | "dev" | "privacy">("all");
+  const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [viewMode, setViewMode] = useState<"bento" | "table">("bento");
+  const [activePreset, setActivePreset] = useState<string | null>(null);
   const [recentToolIds, setRecentToolIds] = useState<string[]>([]);
   const [disabledTools, setDisabledTools] = useState<string[]>([]);
 
@@ -115,33 +129,75 @@ export default function HomePage() {
   }, []);
 
   const filteredTools = TOOLS.filter((t) => {
-    if (activeTab === "all") return true;
-    return t.category === activeTab;
+    if (activePreset) {
+      const preset = WORKFLOW_PRESETS.find((p) => p.label === activePreset);
+      return preset?.tools.includes(t.id);
+    }
+    if (activeCategory === "all") return true;
+    return t.category === activeCategory;
   });
 
   const recentTools = TOOLS.filter((t) => recentToolIds.includes(t.id));
 
+  const handleToolClick = (id: string) => {
+    sounds.playPop();
+    try {
+      const recents = JSON.parse(localStorage.getItem("pt_recent_tools") || "[]");
+      const updated = [id, ...recents.filter((item: string) => item !== id)].slice(0, 5);
+      localStorage.setItem("pt_recent_tools", JSON.stringify(updated));
+    } catch {}
+  };
+
   return (
-    <main className="max-w-6xl mx-auto px-6 py-12 space-y-12">
+    <main className="max-w-6xl mx-auto px-6 py-10 space-y-12">
       {/* Hero Section */}
-      <section className="text-center space-y-4 max-w-2xl mx-auto pt-4">
+      <section className="text-center space-y-4 max-w-2xl mx-auto pt-2">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold">
-          <span className="h-2 w-2 rounded-full bg-indigo-400 animate-pulse" />
-          <span>Zero Server Uploads • Zero Telemetry</span>
+          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>Local In-Browser Memory • Zero Uploads</span>
         </div>
         <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-white">
-          Private, In-Browser <br className="hidden sm:block" />
+          Private, Client-Side <br />
           <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-            Developer & File Tools
+            File & Developer Utilities
           </span>
         </h1>
-        <p className="text-sm sm:text-base text-slate-400 leading-relaxed">
-          Perform file conversions, compression, editing, and formatting entirely inside your browser memory.
+        <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+          Perform conversions, image compression, PDF organization, and text diffing with zero telemetry.
         </p>
       </section>
 
-      {/* Recently Used Tools Bar */}
-      {recentTools.length > 0 && (
+      {/* Smart File Dropzone */}
+      <SmartHeroDropzone />
+
+      {/* Quick Workflow Preset Chips */}
+      <div className="space-y-2">
+        <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 text-center">
+          Scenario Presets:
+        </div>
+        <div className="flex flex-wrap gap-2 justify-center">
+          {WORKFLOW_PRESETS.map((preset) => (
+            <button
+              key={preset.label}
+              onClick={() => {
+                sounds.playPop();
+                setActivePreset(activePreset === preset.label ? null : preset.label);
+                setActiveCategory("all");
+              }}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
+                activePreset === preset.label
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                  : "bg-slate-900 border border-slate-800 text-slate-400 hover:text-white"
+              }`}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Recently Used Bar */}
+      {recentTools.length > 0 && !activePreset && (
         <section className="space-y-3">
           <div className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
             <span>⚡ Recently Used</span>
@@ -151,6 +207,7 @@ export default function HomePage() {
               <Link
                 key={tool.id}
                 href={`/${tool.id}`}
+                onClick={() => handleToolClick(tool.id)}
                 className="flex items-center gap-3 p-3 bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800 rounded-2xl transition hover:scale-[1.02]"
               >
                 <div className="p-2 bg-slate-950/80 border border-slate-800 rounded-xl">
@@ -158,7 +215,7 @@ export default function HomePage() {
                 </div>
                 <div className="overflow-hidden">
                   <div className="text-xs font-bold text-white truncate">{tool.title}</div>
-                  <div className="text-[10px] text-slate-400">Jump back in</div>
+                  <div className="text-[10px] text-slate-400">Reopen tool →</div>
                 </div>
               </Link>
             ))}
@@ -166,78 +223,145 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* Category Tabs */}
+      {/* Directory Section with Category & View Mode Switcher */}
       <section className="space-y-6">
-        <div className="flex flex-wrap gap-2 justify-center border-b border-slate-800/80 pb-4">
-          {[
-            { id: "all", label: "All Utilities" },
-            { id: "images", label: "Image Tools" },
-            { id: "pdf", label: "PDF Tools" },
-            { id: "dev", label: "Developer" },
-            { id: "privacy", label: "Privacy" },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold transition ${
-                activeTab === tab.id
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                  : "bg-slate-900/60 text-slate-400 hover:text-white border border-slate-800"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Tools Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredTools.map((tool) => {
-            const isDisabled = disabledTools.includes(tool.id);
-            return (
-              <Link
-                key={tool.id}
-                href={isDisabled ? "#" : `/${tool.id}`}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
+          {/* Category Tabs */}
+          <div className="flex flex-wrap gap-2">
+            {[
+              { id: "all", label: "All Utilities" },
+              { id: "images", label: "Images" },
+              { id: "pdf", label: "PDFs" },
+              { id: "dev", label: "Developer" },
+              { id: "privacy", label: "Privacy" },
+            ].map((tab) => (
+              <button
+                key={tab.id}
                 onClick={() => {
-                  if (isDisabled) return;
-                  try {
-                    const recents = JSON.parse(localStorage.getItem("pt_recent_tools") || "[]");
-                    const updated = [tool.id, ...recents.filter((item: string) => item !== tool.id)].slice(0, 5);
-                    localStorage.setItem("pt_recent_tools", JSON.stringify(updated));
-                  } catch {}
+                  sounds.playPop();
+                  setActiveCategory(tab.id);
+                  setActivePreset(null);
                 }}
-                className={`group relative flex flex-col justify-between p-6 rounded-3xl border transition duration-200 ${
-                  isDisabled
-                    ? "bg-slate-950/40 border-slate-800/40 opacity-50 cursor-not-allowed"
-                    : "bg-slate-900/50 hover:bg-slate-900 border-slate-800/80 hover:border-indigo-500/50 hover:shadow-xl hover:shadow-indigo-500/5 hover:-translate-y-0.5"
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${
+                  activeCategory === tab.id && !activePreset
+                    ? "bg-indigo-600 text-white"
+                    : "bg-slate-900/60 text-slate-400 hover:text-white border border-slate-800"
                 }`}
               >
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="p-3 bg-slate-950/80 border border-slate-800 rounded-2xl group-hover:scale-110 group-hover:border-indigo-500/40 transition duration-200">
-                      <ToolIcon name={tool.id} className="w-6 h-6" />
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Grid vs Dense Table List Toggle */}
+          <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 text-xs">
+            <button
+              onClick={() => {
+                sounds.playPop();
+                setViewMode("bento");
+              }}
+              className={`px-3 py-1 rounded-lg font-semibold transition ${
+                viewMode === "bento" ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Bento Grid
+            </button>
+            <button
+              onClick={() => {
+                sounds.playPop();
+                setViewMode("table");
+              }}
+              className={`px-3 py-1 rounded-lg font-semibold transition ${
+                viewMode === "table" ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Dense List
+            </button>
+          </div>
+        </div>
+
+        {/* Bento Grid Layout */}
+        {viewMode === "bento" ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filteredTools.map((tool) => {
+              const isDisabled = disabledTools.includes(tool.id);
+              const isFlagship = tool.featured && !activePreset && activeCategory === "all";
+
+              return (
+                <Link
+                  key={tool.id}
+                  href={isDisabled ? "#" : `/${tool.id}`}
+                  onClick={() => !isDisabled && handleToolClick(tool.id)}
+                  className={`group relative flex flex-col justify-between p-6 rounded-3xl border transition duration-200 ${
+                    isFlagship
+                      ? "sm:col-span-2 lg:col-span-2 bg-gradient-to-br from-slate-900 via-slate-900/90 to-indigo-950/30 border-indigo-500/40 hover:border-indigo-500"
+                      : "bg-slate-900/50 hover:bg-slate-900 border-slate-800/80 hover:border-indigo-500/50"
+                  } ${
+                    isDisabled
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:shadow-xl hover:shadow-indigo-500/5 hover:-translate-y-0.5"
+                  }`}
+                >
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="p-3 bg-slate-950/80 border border-slate-800 rounded-2xl group-hover:scale-110 group-hover:border-indigo-500/40 transition duration-200 shadow-inner">
+                        <ToolIcon name={tool.id} className={isFlagship ? "w-8 h-8" : "w-6 h-6"} />
+                      </div>
+                      <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700/60 text-slate-300 font-mono">
+                        {isDisabled ? "Maintenance" : tool.badge}
+                      </span>
                     </div>
-                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700/60 text-slate-300">
-                      {isDisabled ? "Maintenance" : tool.badge}
+                    <div>
+                      <h3 className={`font-bold text-white group-hover:text-indigo-400 transition ${isFlagship ? "text-lg" : "text-base"}`}>
+                        {tool.title}
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                        {tool.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="pt-6 flex items-center justify-between text-xs font-semibold text-indigo-400">
+                    <span className="group-hover:translate-x-1 transition duration-200">
+                      {isDisabled ? "Temporarily Disabled" : "Open Tool →"}
                     </span>
+                    <kbd className="hidden sm:inline-block text-[10px] font-mono text-slate-600 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
+                      /{tool.id}
+                    </kbd>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        ) : (
+          /* Dense Table List View */
+          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden divide-y divide-slate-800/80">
+            {filteredTools.map((tool) => (
+              <Link
+                key={tool.id}
+                href={`/${tool.id}`}
+                onClick={() => handleToolClick(tool.id)}
+                className="flex items-center justify-between p-4 hover:bg-slate-800/60 transition group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="p-2 bg-slate-950 border border-slate-800 rounded-xl">
+                    <ToolIcon name={tool.id} className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-white group-hover:text-indigo-400 transition">
+                    <div className="text-xs font-bold text-white group-hover:text-indigo-400 transition">
                       {tool.title}
-                    </h3>
-                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                      {tool.description}
-                    </p>
+                    </div>
+                    <div className="text-[11px] text-slate-400 truncate max-w-md">{tool.description}</div>
                   </div>
                 </div>
-
-                <div className="pt-6 flex items-center text-xs font-semibold text-indigo-400 group-hover:translate-x-1 transition duration-200">
-                  <span>{isDisabled ? "Currently Unavailable" : "Open Utility →"}</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] font-mono text-slate-500 uppercase">{tool.category}</span>
+                  <span className="text-xs font-bold text-indigo-400 group-hover:translate-x-1 transition">→</span>
                 </div>
               </Link>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
     </main>
   );
