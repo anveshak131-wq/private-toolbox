@@ -38,7 +38,6 @@ export default function RootLayout({
               <Link href="/" onClick={() => sounds.playPop()} className="hover:opacity-90 transition">
                 <Logo size="md" />
               </Link>
-              {/* Zero-Server Privacy Gauge */}
               <PrivacyGauge />
             </div>
 
@@ -50,7 +49,11 @@ export default function RootLayout({
                 }}
                 className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition"
               >
-                <span>🔍 Quick Find</span>
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <span>Quick Find</span>
                 <kbd className="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700 font-mono">
                   /
                 </kbd>
@@ -61,9 +64,12 @@ export default function RootLayout({
                   sounds.playPop();
                   setFeedbackOpen(true);
                 }}
-                className="text-slate-400 hover:text-white transition px-3 py-1.5 rounded-lg hover:bg-slate-900"
+                className="text-slate-400 hover:text-white transition px-3 py-1.5 rounded-lg hover:bg-slate-900 flex items-center gap-1.5"
               >
-                Request Tool
+                <svg className="w-3.5 h-3.5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                <span>Feedback</span>
               </button>
 
               <a
@@ -76,7 +82,13 @@ export default function RootLayout({
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition shadow-sm font-medium"
               >
-                <span>☕</span>
+                <svg className="w-3.5 h-3.5 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+                  <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                  <line x1="6" y1="1" x2="6" y2="4" />
+                  <line x1="10" y1="1" x2="10" y2="4" />
+                  <line x1="14" y1="1" x2="14" y2="4" />
+                </svg>
                 <span>Support</span>
               </a>
             </nav>
@@ -85,6 +97,27 @@ export default function RootLayout({
 
         {/* Main Content */}
         <div className="flex-1">{children}</div>
+
+        {/* Floating Support Badge */}
+        <a
+          href={SUPPORT_LINK}
+          onClick={() => {
+            sounds.playSuccess();
+            trackSupportClick();
+          }}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-6 right-6 z-30 flex items-center gap-2 bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-indigo-500 text-white px-4 py-2 rounded-full shadow-xl shadow-black/40 backdrop-blur-md text-xs font-semibold transition-all hover:scale-105"
+        >
+          <svg className="w-4 h-4 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+            <line x1="6" y1="1" x2="6" y2="4" />
+            <line x1="10" y1="1" x2="10" y2="4" />
+            <line x1="14" y1="1" x2="14" y2="4" />
+          </svg>
+          <span>Support Project</span>
+        </a>
 
         {/* Global Footer */}
         <footer className="border-t border-slate-800/80 bg-slate-950/60 backdrop-blur-md py-8 text-center text-xs text-slate-500">

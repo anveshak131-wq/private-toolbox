@@ -39,7 +39,9 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
       <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xl">💬</span>
+            <svg className="w-5 h-5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
             <h3 className="text-base font-bold text-white">Send Feedback & Requests</h3>
           </div>
           <button
@@ -52,7 +54,11 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
 
         {submitted ? (
           <div className="py-8 text-center space-y-2">
-            <div className="text-3xl">✨</div>
+            <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto">
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
             <p className="text-sm font-bold text-emerald-400">Thank you for your feedback!</p>
             <p className="text-xs text-slate-400">Your message has been delivered to the admin inbox.</p>
           </div>
@@ -60,9 +66,9 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex gap-2">
               {[
-                { id: "feature", label: "💡 Request Tool" },
-                { id: "bug", label: "🐛 Report Bug" },
-                { id: "feedback", label: "💬 General" },
+                { id: "feature", label: "Request Tool" },
+                { id: "bug", label: "Report Bug" },
+                { id: "feedback", label: "General" },
               ].map((item) => (
                 <button
                   key={item.id}

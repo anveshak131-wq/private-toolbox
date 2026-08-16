@@ -155,9 +155,9 @@ const TOOLS: ToolDef[] = [
 ];
 
 const WORKFLOW_PRESETS = [
-  { label: "📑 PDF & OCR", tools: ["ocr-reader", "pdf-watermark", "pdf-security", "invoice-generator"] },
-  { label: "🎨 Graphics & Design", tools: ["signature-drawer", "social-cropper", "batch-converter", "color-contrast-simulator"] },
-  { label: "🛡️ Security & Privacy", tools: ["secure-note", "checksum-verifier", "fingerprint-analyzer", "file-encryptor"] },
+  { label: "PDF & OCR Workflow", tools: ["ocr-reader", "pdf-watermark", "pdf-security", "invoice-generator"] },
+  { label: "Graphics & Design Pack", tools: ["signature-drawer", "social-cropper", "batch-converter", "color-contrast-simulator"] },
+  { label: "Security & Privacy Suite", tools: ["secure-note", "checksum-verifier", "fingerprint-analyzer", "file-encryptor"] },
 ];
 
 export default function HomePage() {
@@ -221,7 +221,7 @@ export default function HomePage() {
       {/* Scenario Presets */}
       <div className="space-y-2">
         <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 text-center">
-          Scenario Presets:
+          Scenario Presets
         </div>
         <div className="flex flex-wrap gap-2 justify-center">
           {WORKFLOW_PRESETS.map((preset) => (
@@ -248,7 +248,10 @@ export default function HomePage() {
       {recentTools.length > 0 && !activePreset && (
         <section className="space-y-3">
           <div className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-            <span>⚡ Recently Used</span>
+            <svg className="w-3.5 h-3.5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+            </svg>
+            <span>Recently Used</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {recentTools.slice(0, 4).map((tool) => (
@@ -277,9 +280,9 @@ export default function HomePage() {
           <div className="flex flex-wrap gap-2">
             {[
               { id: "all", label: "All Utilities" },
-              { id: "pdf", label: "📑 PDF & OCR" },
-              { id: "images", label: "🎨 Graphics & Design" },
-              { id: "privacy", label: "🛡️ Privacy & Security" },
+              { id: "pdf", label: "PDF & OCR" },
+              { id: "images", label: "Graphics & Design" },
+              { id: "privacy", label: "Privacy & Security" },
             ].map((tab) => (
               <button
                 key={tab.id}

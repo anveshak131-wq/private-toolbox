@@ -28,6 +28,7 @@ export default function SmartHeroDropzone() {
       setSuggestions([
         { title: "Split & Reorganize", route: "/pdf-organizer", desc: "Delete pages or split into parts", badge: "PDF" },
         { title: "Merge with Another PDF", route: "/pdf-merger", desc: "Combine multiple PDF files", badge: "PDF" },
+        { title: "Watermark & Page Numbers", route: "/pdf-watermark", desc: "Stamp pages in memory", badge: "PDF" },
       ]);
     } else if (ext === "heic" || ext === "heif") {
       setSuggestions([
@@ -36,10 +37,10 @@ export default function SmartHeroDropzone() {
       ]);
     } else if (file.type.startsWith("image/") || ext === "svg" || ext === "png" || ext === "jpg" || ext === "webp") {
       setSuggestions([
+        { title: "Extract Text (OCR)", route: "/ocr-reader", desc: "Recognize characters locally", badge: "OCR" },
         { title: "Lossless Compressor", route: "/image-compressor", desc: "Reduce size with live compare", badge: "Popular" },
         { title: "Batch Resizer", route: "/image-resizer", desc: "Adjust dimensions and aspect ratio", badge: "Resize" },
         { title: "Convert to PDF", route: "/image-to-pdf", desc: "Package image into standard PDF", badge: "PDF" },
-        { title: "Redact Sensitive Info", route: "/privacy-redactor", desc: "Black out numbers and faces", badge: "Privacy" },
       ]);
     } else if (ext === "json" || file.type.includes("json")) {
       setSuggestions([
@@ -48,8 +49,8 @@ export default function SmartHeroDropzone() {
       ]);
     } else {
       setSuggestions([
-        { title: "Encode / Decode Base64", route: "/base64-codec", desc: "Convert to base64 string", badge: "Codec" },
-        { title: "Text Diff Checker", route: "/diff-checker", desc: "Compare changes", badge: "Diff" },
+        { title: "Verify Checksum (SHA-256)", route: "/checksum-verifier", desc: "Verify file integrity hash", badge: "Security" },
+        { title: "Client-Side Encryptor", route: "/file-encryptor", desc: "Lock with AES-256-GCM", badge: "Privacy" },
       ]);
     }
   };
@@ -89,8 +90,10 @@ export default function SmartHeroDropzone() {
 
         {!detectedFile ? (
           <div className="space-y-3 pointer-events-none">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto text-xl shadow-inner">
-              ⚡
+            <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto shadow-inner">
+              <svg className="w-6 h-6 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
             </div>
             <div>
               <p className="text-sm font-bold text-white">
@@ -109,7 +112,12 @@ export default function SmartHeroDropzone() {
           <div className="space-y-4 text-left" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-3">
-                <span className="text-2xl">📄</span>
+                <div className="p-2 bg-slate-950 border border-slate-800 rounded-xl text-indigo-400">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                  </svg>
+                </div>
                 <div>
                   <div className="text-xs font-bold text-white truncate max-w-xs sm:max-w-md">{detectedFile.name}</div>
                   <div className="text-[10px] text-slate-400 font-mono">{detectedFile.size} • Ready for processing</div>
