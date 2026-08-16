@@ -3,12 +3,12 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { getSiteConfig } from "./lib/analytics";
+import ToolIcon from "./components/ToolIcons";
 
 interface ToolDef {
   id: string;
   title: string;
   description: string;
-  icon: string;
   badge: string;
   category: "all" | "images" | "pdf" | "dev" | "privacy";
 }
@@ -18,7 +18,6 @@ const TOOLS: ToolDef[] = [
     id: "image-compressor",
     title: "Image Compressor",
     description: "Compress PNG, JPG, and WebP files locally with instant side-by-side comparison.",
-    icon: "🗜️",
     badge: "Fast Canvas",
     category: "images",
   },
@@ -26,7 +25,6 @@ const TOOLS: ToolDef[] = [
     id: "pdf-merger",
     title: "PDF Merger",
     description: "Combine multiple PDF documents into a single organized file in seconds.",
-    icon: "📑",
     badge: "Zero Upload",
     category: "pdf",
   },
@@ -34,7 +32,6 @@ const TOOLS: ToolDef[] = [
     id: "pdf-organizer",
     title: "PDF Splitter & Organizer",
     description: "Rearrange, split, delete, or rotate pages directly in your browser.",
-    icon: "✂️",
     badge: "Interactive",
     category: "pdf",
   },
@@ -42,7 +39,6 @@ const TOOLS: ToolDef[] = [
     id: "image-to-pdf",
     title: "Image to PDF",
     description: "Convert batches of JPG, PNG, and WebP images into a single formatted PDF.",
-    icon: "📄",
     badge: "Multi-file",
     category: "pdf",
   },
@@ -50,7 +46,6 @@ const TOOLS: ToolDef[] = [
     id: "image-resizer",
     title: "Image Resizer",
     description: "Resize dimensions, scale percentages, and convert aspect ratios instantly.",
-    icon: "📐",
     badge: "Lossless",
     category: "images",
   },
@@ -58,7 +53,6 @@ const TOOLS: ToolDef[] = [
     id: "privacy-redactor",
     title: "Privacy Redactor",
     description: "Censor confidential numbers, faces, and sensitive areas on documents.",
-    icon: "🛡️",
     badge: "100% Private",
     category: "privacy",
   },
@@ -66,7 +60,6 @@ const TOOLS: ToolDef[] = [
     id: "json-formatter",
     title: "JSON Formatter & Validator",
     description: "Prettify, minify, validate, and convert JSON structures with syntax highlighting.",
-    icon: "✨",
     badge: "Dev Tool",
     category: "dev",
   },
@@ -74,7 +67,6 @@ const TOOLS: ToolDef[] = [
     id: "diff-checker",
     title: "Text Diff Checker",
     description: "Compare two text snippets side-by-side to highlight added and removed lines.",
-    icon: "🔍",
     badge: "Line Diff",
     category: "dev",
   },
@@ -82,7 +74,6 @@ const TOOLS: ToolDef[] = [
     id: "base64-codec",
     title: "Base64 Encoder & Decoder",
     description: "Encode text and files into Base64 or decode Base64 data URIs instantly.",
-    icon: "⚡",
     badge: "Dual-mode",
     category: "dev",
   },
@@ -90,7 +81,6 @@ const TOOLS: ToolDef[] = [
     id: "svg-converter",
     title: "SVG to Vector/Raster",
     description: "Rasterize SVG vector illustrations to high-resolution PNG, WebP, or JPEG.",
-    icon: "🎨",
     badge: "Hi-DPI",
     category: "images",
   },
@@ -98,7 +88,6 @@ const TOOLS: ToolDef[] = [
     id: "heic-converter",
     title: "HEIC to JPEG Converter",
     description: "Decode Apple iPhone HEIC/HEIF photos directly into standard JPEG format.",
-    icon: "📷",
     badge: "Apple Format",
     category: "images",
   },
@@ -106,7 +95,6 @@ const TOOLS: ToolDef[] = [
     id: "qr-generator",
     title: "QR Code Generator",
     description: "Generate high-resolution vector and PNG QR codes with zero tracking.",
-    icon: "🏁",
     badge: "Customizable",
     category: "dev",
   },
@@ -138,7 +126,7 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="text-center space-y-4 max-w-2xl mx-auto pt-4">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold">
-          <span>🔒</span>
+          <span className="h-2 w-2 rounded-full bg-indigo-400 animate-pulse" />
           <span>Zero Server Uploads • Zero Telemetry</span>
         </div>
         <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-white">
@@ -165,7 +153,9 @@ export default function HomePage() {
                 href={`/${tool.id}`}
                 className="flex items-center gap-3 p-3 bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800 rounded-2xl transition hover:scale-[1.02]"
               >
-                <span className="text-xl">{tool.icon}</span>
+                <div className="p-2 bg-slate-950/80 border border-slate-800 rounded-xl">
+                  <ToolIcon name={tool.id} className="w-5 h-5" />
+                </div>
                 <div className="overflow-hidden">
                   <div className="text-xs font-bold text-white truncate">{tool.title}</div>
                   <div className="text-[10px] text-slate-400">Jump back in</div>
@@ -181,10 +171,10 @@ export default function HomePage() {
         <div className="flex flex-wrap gap-2 justify-center border-b border-slate-800/80 pb-4">
           {[
             { id: "all", label: "All Utilities" },
-            { id: "images", label: "🖼️ Image Tools" },
-            { id: "pdf", label: "📑 PDF Tools" },
-            { id: "dev", label: "💻 Developer" },
-            { id: "privacy", label: "🛡️ Privacy" },
+            { id: "images", label: "Image Tools" },
+            { id: "pdf", label: "PDF Tools" },
+            { id: "dev", label: "Developer" },
+            { id: "privacy", label: "Privacy" },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -224,9 +214,9 @@ export default function HomePage() {
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-3xl p-2.5 bg-slate-950/80 border border-slate-800 rounded-2xl group-hover:scale-110 transition duration-200">
-                      {tool.icon}
-                    </span>
+                    <div className="p-3 bg-slate-950/80 border border-slate-800 rounded-2xl group-hover:scale-110 group-hover:border-indigo-500/40 transition duration-200">
+                      <ToolIcon name={tool.id} className="w-6 h-6" />
+                    </div>
                     <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700/60 text-slate-300">
                       {isDisabled ? "Maintenance" : tool.badge}
                     </span>

@@ -2,28 +2,28 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import ToolIcon from "./ToolIcons";
 
 interface ToolItem {
   id: string;
   name: string;
   desc: string;
-  icon: string;
   category: string;
 }
 
 const TOOLS: ToolItem[] = [
-  { id: "image-compressor", name: "Image Compressor", desc: "Lossless & lossy web-worker compression", icon: "🗜️", category: "Images" },
-  { id: "pdf-merger", name: "PDF Merger", desc: "Combine multiple PDF files into one", icon: "📑", category: "PDF" },
-  { id: "pdf-organizer", name: "PDF Splitter & Deletor", desc: "Reorder, split, and remove pages", icon: "✂️", category: "PDF" },
-  { id: "image-to-pdf", name: "Image to PDF", desc: "Convert multiple images to PDF document", icon: "📄", category: "PDF" },
-  { id: "image-resizer", name: "Image Resizer", desc: "Batch resize dimensions & aspect ratios", icon: "📐", category: "Images" },
-  { id: "privacy-redactor", name: "Privacy Redactor", desc: "Black out sensitive text & metadata", icon: "🛡️", category: "Privacy" },
-  { id: "json-formatter", name: "JSON Formatter", desc: "Prettify, minify, and validate JSON", icon: "✨", category: "Developer" },
-  { id: "diff-checker", name: "Text Diff Checker", desc: "Compare side-by-side text differences", icon: "🔍", category: "Developer" },
-  { id: "base64-codec", name: "Base64 Codec", desc: "Encode & decode string or binary files", icon: "⚡", category: "Developer" },
-  { id: "svg-converter", name: "SVG Converter", desc: "Convert SVG vectors to PNG, WebP, JPG", icon: "🎨", category: "Images" },
-  { id: "heic-converter", name: "HEIC to JPEG", desc: "Decode Apple HEIC/HEIF images locally", icon: "📷", category: "Images" },
-  { id: "qr-generator", name: "QR Code Generator", desc: "Create high-res SVG/PNG QR codes", icon: "🏁", category: "Utility" },
+  { id: "image-compressor", name: "Image Compressor", desc: "Lossless & lossy web-worker compression", category: "Images" },
+  { id: "pdf-merger", name: "PDF Merger", desc: "Combine multiple PDF files into one", category: "PDF" },
+  { id: "pdf-organizer", name: "PDF Splitter & Deletor", desc: "Reorder, split, and remove pages", category: "PDF" },
+  { id: "image-to-pdf", name: "Image to PDF", desc: "Convert multiple images to PDF document", category: "PDF" },
+  { id: "image-resizer", name: "Image Resizer", desc: "Batch resize dimensions & aspect ratios", category: "Images" },
+  { id: "privacy-redactor", name: "Privacy Redactor", desc: "Black out sensitive text & metadata", category: "Privacy" },
+  { id: "json-formatter", name: "JSON Formatter", desc: "Prettify, minify, and validate JSON", category: "Developer" },
+  { id: "diff-checker", name: "Text Diff Checker", desc: "Compare side-by-side text differences", category: "Developer" },
+  { id: "base64-codec", name: "Base64 Codec", desc: "Encode & decode string or binary files", category: "Developer" },
+  { id: "svg-converter", name: "SVG Converter", desc: "Convert SVG vectors to PNG, WebP, JPG", category: "Images" },
+  { id: "heic-converter", name: "HEIC to JPEG", desc: "Decode Apple HEIC/HEIF images locally", category: "Images" },
+  { id: "qr-generator", name: "QR Code Generator", desc: "Create high-res SVG/PNG QR codes", category: "Utility" },
 ];
 
 export default function CommandPalette() {
@@ -32,7 +32,6 @@ export default function CommandPalette() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const router = useRouter();
 
-  // Keyboard shortcut listener (Cmd+K / Ctrl+K or '/')
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const activeEl = document.activeElement;
@@ -61,7 +60,6 @@ export default function CommandPalette() {
   );
 
   const handleSelect = (id: string) => {
-    // Record recently used tool in localStorage
     try {
       const recents: string[] = JSON.parse(localStorage.getItem("pt_recent_tools") || "[]");
       const updated = [id, ...recents.filter((item) => item !== id)].slice(0, 5);
@@ -95,7 +93,10 @@ export default function CommandPalette() {
         onKeyDown={handleListKeyDown}
       >
         <div className="flex items-center px-4 py-3 border-b border-slate-800 gap-3">
-          <span className="text-slate-400 text-sm">🔍</span>
+          <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
           <input
             autoFocus
             type="text"
@@ -127,7 +128,9 @@ export default function CommandPalette() {
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-xl">{tool.icon}</span>
+                  <div className="p-1.5 bg-slate-950 border border-slate-800 rounded-lg">
+                    <ToolIcon name={tool.id} className="w-4 h-4" />
+                  </div>
                   <div>
                     <div className="text-xs font-bold leading-tight">{tool.name}</div>
                     <div className={`text-[11px] ${idx === selectedIndex ? "text-indigo-100" : "text-slate-400"}`}>
