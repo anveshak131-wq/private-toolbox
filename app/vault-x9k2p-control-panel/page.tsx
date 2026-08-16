@@ -4,6 +4,7 @@ export const dynamic = "force-static";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { supabase } from "../lib/supabase";
 import {
   getAnalyticsData,
   getSiteConfig,
@@ -13,8 +14,10 @@ import {
   SiteConfig,
 } from "../lib/analytics";
 
-const ADMIN_PIN = "9944"; // Master PIN
-const IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15 Minutes Auto-Logout
+// List of Google Accounts authorized to access the dashboard
+const AUTHORIZED_ADMIN_EMAILS = [
+  "anveshkoganti54@gmail.com",
+];
 
 const ALL_TOOLS = [
   { id: "image-compressor", name: "Image Compressor" },
@@ -32,48 +35,56 @@ const ALL_TOOLS = [
 ];
 
 export default function AdminControlPanel() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [pinInput, setPinInput] = useState<string>("");
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<"metrics" | "tools" | "announcement" | "errors" | "audit">("metrics");
   const [data, setData] = useState<any>(null);
   const [config, setConfig] = useState<SiteConfig>(getSiteConfig());
 
-  // Inactivity Auto-Logout Handler
+  // Listen to Supabase OAuth State
   useEffect(() => {
-    if (!isAuthenticated) return;
-
-    let timeout = setTimeout(() => {
-      setIsAuthenticated(false);
-      alert("Session expired due to 15 minutes of inactivity.");
-    }, IDLE_TIMEOUT_MS);
-
-    const resetTimer = () => {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        setIsAuthenticated(false);
-      }, IDLE_TIMEOUT_MS);
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      handleUserSession(session?.user ?? null);
+      setLoading(false);
     };
 
-    window.addEventListener("mousemove", resetTimer);
-    window.addEventListener("keydown", resetTimer);
+    checkSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      handleUserSession(session?.user ?? null);
+    });
 
     return () => {
-      clearTimeout(timeout);
-      window.removeEventListener("mousemove", resetTimer);
-      window.removeEventListener("keydown", resetTimer);
+      authListener.subscription.unsubscribe();
     };
-  }, [isAuthenticated]);
+  }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (pinInput === ADMIN_PIN) {
-      setIsAuthenticated(true);
+  const handleUserSession = (currentUser: any) => {
+    setUser(currentUser);
+    if (currentUser?.email && AUTHORIZED_ADMIN_EMAILS.includes(currentUser.email)) {
+      setIsAuthorized(true);
       logAdminLogin();
       refreshData();
     } else {
-      alert("Invalid Security Code.");
-      setPinInput("");
+      setIsAuthorized(false);
     }
+  };
+
+  const handleGoogleSignIn = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin + "/vault-x9k2p-control-panel",
+      },
+    });
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setIsAuthorized(false);
   };
 
   const refreshData = () => {
@@ -113,8 +124,18 @@ export default function AdminControlPanel() {
     }
   };
 
-  // Auth Gate Form
-  if (!isAuthenticated) {
+  if (loading) {
+    return (
+      <main className="min-h-[80vh] flex items-center justify-center">
+        <div className="text-xs text-indigo-400 font-semibold animate-pulse">
+          Authenticating Master Session...
+        </div>
+      </main>
+    );
+  }
+
+  // Auth Gate
+  if (!user || !isAuthorized) {
     return (
       <main className="min-h-[80vh] flex items-center justify-center px-4">
         <div className="bg-slate-900/80 border border-slate-800 p-8 rounded-3xl max-w-sm w-full space-y-6 text-center shadow-2xl backdrop-blur-xl">
@@ -123,25 +144,39 @@ export default function AdminControlPanel() {
           </div>
           <div>
             <h1 className="text-lg font-bold text-white">Master Control Vault</h1>
-            <p className="text-xs text-slate-400 mt-1">Enter PIN for PrivateToolbox diagnostics</p>
+            <p className="text-xs text-slate-400 mt-1">Sign in with an authorized administrator Google account</p>
           </div>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <input
-              type="password"
-              maxLength={8}
-              value={pinInput}
-              onChange={(e) => setPinInput(e.target.value)}
-              placeholder="••••"
-              className="w-full text-center text-xl tracking-widest bg-slate-950 border border-slate-800 rounded-xl py-3 text-white focus:border-indigo-500 outline-none"
-              autoFocus
-            />
-            <button
-              type="submit"
-              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-xs transition"
-            >
-              Unlock Dashboard
-            </button>
-          </form>
+
+          {user && !isAuthorized && (
+            <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl text-xs">
+              Account <strong>{user.email}</strong> is not authorized for master access.
+            </div>
+          )}
+
+          <button
+            onClick={user ? handleSignOut : handleGoogleSignIn}
+            className="w-full flex items-center justify-center gap-3 bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 px-4 rounded-xl text-xs border border-slate-700 transition"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24">
+              <path
+                fill="#EA4335"
+                d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"
+              />
+              <path
+                fill="#4285F4"
+                d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.8s.2-2.1.4-2.8L1.9 6.3C.7 8.7 0 10.3 0 12s.7 3.3 1.9 5.7l3.7-2.9z"
+              />
+              <path
+                fill="#34A853"
+                d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2-6.4-4.8L1.9 16.4C3.7 20.1 7.5 23 12 23z"
+              />
+            </svg>
+            <span>{user ? "Sign in with different account" : "Continue with Google"}</span>
+          </button>
         </div>
       </main>
     );
@@ -158,7 +193,7 @@ export default function AdminControlPanel() {
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400 mb-1">
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Session Active (15m Idle Protection)
+            Authenticated: {user.email}
           </div>
           <h1 className="text-2xl font-black text-white">Vault Master Control</h1>
           <p className="text-xs text-slate-400">Manage real-time analytics, tool availability, announcements, and errors.</p>
@@ -171,10 +206,10 @@ export default function AdminControlPanel() {
             Export JSON
           </button>
           <button
-            onClick={() => setIsAuthenticated(false)}
+            onClick={handleSignOut}
             className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-xl text-xs font-semibold transition"
           >
-            Lock Vault
+            Sign Out
           </button>
         </div>
       </div>
@@ -223,7 +258,6 @@ export default function AdminControlPanel() {
             </div>
           </div>
 
-          {/* Tool Breakdown Table */}
           <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
             <h3 className="text-sm font-bold text-white">Tool Popularity Breakdown</h3>
             <div className="space-y-3">
@@ -247,7 +281,6 @@ export default function AdminControlPanel() {
             </div>
           </div>
 
-          {/* Device Distribution */}
           <div className="grid grid-cols-3 gap-4">
             {Object.entries(data.deviceStats || {}).map(([dev, cnt]: any) => (
               <div key={dev} className="bg-slate-900/40 border border-slate-800 p-4 rounded-xl text-center">
@@ -273,7 +306,7 @@ export default function AdminControlPanel() {
         <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
           <div>
             <h3 className="text-sm font-bold text-white">Remote Tool Availability</h3>
-            <p className="text-xs text-slate-400">Toggle any tool off to mark it under maintenance without redeploying.</p>
+            <p className="text-xs text-slate-400">Toggle any tool off to mark it under maintenance.</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
