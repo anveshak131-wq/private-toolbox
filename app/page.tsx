@@ -169,7 +169,7 @@ export default function HomePage() {
 
   useEffect(() => {
     try {
-      const recents = JSON.parse(localStorage.getItem("pt_recent_tools") || "[]");
+      const recents: string[] = JSON.parse(localStorage.getItem("pt_recent_tools") || "[]");
       setRecentToolIds(recents);
       const config = getSiteConfig();
       setDisabledTools(config.disabledTools || []);
@@ -190,8 +190,8 @@ export default function HomePage() {
   const handleToolClick = (id: string) => {
     sounds.playPop();
     try {
-      const recents = JSON.parse(localStorage.getItem("pt_recent_tools") || "[]");
-      const updated = [id, ...recents.filter((item) => item !== id)].slice(0, 5);
+      const recents: string[] = JSON.parse(localStorage.getItem("pt_recent_tools") || "[]");
+      const updated = [id, ...recents.filter((item: string) => item !== id)].slice(0, 5);
       localStorage.setItem("pt_recent_tools", JSON.stringify(updated));
     } catch {}
   };
