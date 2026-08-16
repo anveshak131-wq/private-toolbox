@@ -12,15 +12,16 @@ interface ToolDef {
   title: string;
   description: string;
   badge: string;
-  category: "images" | "pdf" | "dev" | "privacy";
+  category: "images" | "pdf" | "dev" | "privacy" | "text";
   featured?: boolean;
 }
 
 const TOOLS: ToolDef[] = [
+  // Flagships
   {
     id: "image-compressor",
     title: "Lossless Image Compressor",
-    description: "Compress PNG, JPG, and WebP files locally with real-time before/after split inspection.",
+    description: "Compress PNG, JPG, and WebP files locally with real-time split inspection.",
     badge: "Flagship",
     category: "images",
     featured: true,
@@ -28,11 +29,84 @@ const TOOLS: ToolDef[] = [
   {
     id: "pdf-organizer",
     title: "PDF Splitter & Organizer",
-    description: "Interactive thumbnail grid to rearrange, rotate, split, and delete individual PDF pages.",
+    description: "Interactive thumbnail grid to rearrange, rotate, split, and delete PDF pages.",
     badge: "Popular",
     category: "pdf",
     featured: true,
   },
+  // Privacy Suite
+  {
+    id: "metadata-stripper",
+    title: "EXIF & Metadata Stripper",
+    description: "Remove GPS locations, device serials, and timestamps from photos before sharing.",
+    badge: "100% Private",
+    category: "privacy",
+  },
+  {
+    id: "file-encryptor",
+    title: "Client-Side File Encryptor",
+    description: "Encrypt and decrypt files using military-grade AES-256-GCM in browser memory.",
+    badge: "AES-GCM",
+    category: "privacy",
+  },
+  {
+    id: "privacy-redactor",
+    title: "Privacy Redactor",
+    description: "Black out sensitive phone numbers, faces, and classified areas before sharing.",
+    badge: "Sanitizer",
+    category: "privacy",
+  },
+  {
+    id: "password-generator",
+    title: "Password & Passphrase Generator",
+    description: "Generate cryptographically secure passwords with entropy controls.",
+    badge: "WebCrypto",
+    category: "privacy",
+  },
+  // Media & Design Suite
+  {
+    id: "audio-trimmer",
+    title: "In-Browser Audio Trimmer",
+    description: "Trim voice notes, podcasts, and MP3/WAV tracks with sample-accurate playback.",
+    badge: "WebAudio",
+    category: "images",
+  },
+  {
+    id: "color-palette",
+    title: "Color Palette Extractor",
+    description: "Extract dominant hex color swatches directly from any image or brand asset.",
+    badge: "Design",
+    category: "images",
+  },
+  {
+    id: "favicon-generator",
+    title: "Favicon & Icon Generator",
+    description: "Generate multi-resolution 16px to 512px icon bundles in a single .zip file.",
+    badge: "Multi-size",
+    category: "images",
+  },
+  {
+    id: "heic-converter",
+    title: "HEIC to JPEG Converter",
+    description: "Decode Apple iPhone HEIC/HEIF photos directly into standard JPEG format.",
+    badge: "Apple Format",
+    category: "images",
+  },
+  {
+    id: "svg-converter",
+    title: "SVG to Vector/Raster",
+    description: "Rasterize SVG vector illustrations to high-resolution PNG, WebP, or JPEG.",
+    badge: "Hi-DPI",
+    category: "images",
+  },
+  {
+    id: "image-resizer",
+    title: "Image Resizer",
+    description: "Resize dimensions, scale percentages, and convert aspect ratios instantly.",
+    badge: "Lossless",
+    category: "images",
+  },
+  // PDF Suite
   {
     id: "pdf-merger",
     title: "PDF Merger",
@@ -43,24 +117,33 @@ const TOOLS: ToolDef[] = [
   {
     id: "image-to-pdf",
     title: "Image to PDF",
-    description: "Convert batches of JPG, PNG, and WebP images into a single formatted PDF document.",
+    description: "Convert batches of JPG, PNG, and WebP images into a single formatted PDF.",
     badge: "Batch",
     category: "pdf",
   },
+  // Text & Document Suite
   {
-    id: "image-resizer",
-    title: "Image Resizer",
-    description: "Resize dimensions, scale percentages, and convert aspect ratios instantly.",
-    badge: "Lossless",
-    category: "images",
+    id: "markdown-preview",
+    title: "Markdown Live Previewer",
+    description: "Write and preview formatted Markdown and export compiled HTML code.",
+    badge: "Split-view",
+    category: "text",
   },
   {
-    id: "privacy-redactor",
-    title: "Privacy Redactor",
-    description: "Black out sensitive phone numbers, faces, and classified areas before sharing.",
-    badge: "100% Private",
-    category: "privacy",
+    id: "word-counter",
+    title: "Word & Read-Time Counter",
+    description: "Compute word count, speaking duration, and character metrics in real-time.",
+    badge: "Analytics",
+    category: "text",
   },
+  {
+    id: "case-converter",
+    title: "Text Case Converter",
+    description: "Switch text between camelCase, kebab-case, snake_case, and Title Case.",
+    badge: "Developer",
+    category: "text",
+  },
+  // Developer
   {
     id: "json-formatter",
     title: "JSON Formatter & Validator",
@@ -83,20 +166,6 @@ const TOOLS: ToolDef[] = [
     category: "dev",
   },
   {
-    id: "svg-converter",
-    title: "SVG to Vector/Raster",
-    description: "Rasterize SVG vector illustrations to high-resolution PNG, WebP, or JPEG.",
-    badge: "Hi-DPI",
-    category: "images",
-  },
-  {
-    id: "heic-converter",
-    title: "HEIC to JPEG Converter",
-    description: "Decode Apple iPhone HEIC/HEIF photos directly into standard JPEG format.",
-    badge: "Apple Format",
-    category: "images",
-  },
-  {
     id: "qr-generator",
     title: "QR Code Generator",
     description: "Generate high-resolution vector and PNG QR codes with zero tracking.",
@@ -107,9 +176,9 @@ const TOOLS: ToolDef[] = [
 
 const WORKFLOW_PRESETS = [
   { label: "📦 Email Prep", tools: ["image-compressor", "pdf-merger", "image-to-pdf"] },
-  { label: "💻 Developer Pack", tools: ["json-formatter", "diff-checker", "base64-codec"] },
-  { label: "🛡️ Document Cleanse", tools: ["privacy-redactor", "pdf-organizer"] },
-  { label: "📷 iPhone Photos", tools: ["heic-converter", "image-compressor"] },
+  { label: "🛡️ Privacy Cleanse", tools: ["metadata-stripper", "file-encryptor", "privacy-redactor"] },
+  { label: "🎨 Designer Pack", tools: ["color-palette", "favicon-generator", "svg-converter"] },
+  { label: "📝 Writer Toolkit", tools: ["markdown-preview", "word-counter", "case-converter"] },
 ];
 
 export default function HomePage() {
@@ -159,18 +228,18 @@ export default function HomePage() {
         <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-white">
           Private, Client-Side <br />
           <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-            File & Developer Utilities
+            File, Media & Text Tools
           </span>
         </h1>
         <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-          Perform conversions, image compression, PDF organization, and text diffing with zero telemetry.
+          Perform conversions, encryption, EXIF scrubbing, and audio trimming directly in your browser memory.
         </p>
       </section>
 
       {/* Smart File Dropzone */}
       <SmartHeroDropzone />
 
-      {/* Quick Workflow Preset Chips */}
+      {/* Scenario Presets */}
       <div className="space-y-2">
         <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 text-center">
           Scenario Presets:
@@ -223,17 +292,17 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* Directory Section with Category & View Mode Switcher */}
+      {/* Directory Section */}
       <section className="space-y-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
-          {/* Category Tabs */}
           <div className="flex flex-wrap gap-2">
             {[
               { id: "all", label: "All Utilities" },
-              { id: "images", label: "Images" },
-              { id: "pdf", label: "PDFs" },
-              { id: "dev", label: "Developer" },
-              { id: "privacy", label: "Privacy" },
+              { id: "privacy", label: "🛡️ Privacy" },
+              { id: "images", label: "🖼️ Media & Audio" },
+              { id: "pdf", label: "📑 PDFs" },
+              { id: "text", label: "📝 Text & Docs" },
+              { id: "dev", label: "💻 Developer" },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -253,7 +322,6 @@ export default function HomePage() {
             ))}
           </div>
 
-          {/* Grid vs Dense Table List Toggle */}
           <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 text-xs">
             <button
               onClick={() => {
@@ -280,7 +348,6 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Bento Grid Layout */}
         {viewMode === "bento" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredTools.map((tool) => {
@@ -334,7 +401,6 @@ export default function HomePage() {
             })}
           </div>
         ) : (
-          /* Dense Table List View */
           <div className="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden divide-y divide-slate-800/80">
             {filteredTools.map((tool) => (
               <Link
