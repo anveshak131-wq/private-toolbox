@@ -55,6 +55,7 @@ export interface ToolUsageStat {
     FEEDBACK_ITEMS: "pt_analytics_feedback_items",
     SITE_CONFIG: "pt_site_config",
     AUDIT_LOGS: "pt_admin_audit_logs",
+    WEBHOOK_THROTTLE: "pt_last_webhook_dispatch",
   };
   
   const getStorage = <T>(key: string, fallback: T): T => {
@@ -76,12 +77,27 @@ export interface ToolUsageStat {
     }
   };
   
+  // Webhook Rate Limiter (Max 1 dispatch every 6 seconds per browser session)
+  const checkWebhookRateLimit = (): boolean => {
+    if (typeof window === "undefined") return false;
+    const lastTime = parseInt(sessionStorage.getItem(STORAGE_KEYS.WEBHOOK_THROTTLE) || "0", 10);
+    const now = Date.now();
+  
+    if (now - lastTime < 6000) {
+      console.warn("Webhook dispatch throttled to prevent spam.");
+      return false;
+    }
+  
+    sessionStorage.setItem(STORAGE_KEYS.WEBHOOK_THROTTLE, now.toString());
+    return true;
+  };
+  
   // Dispatch Discord or Telegram Webhooks
   export const sendWebhookNotification = async (title: string, message: string, color: number = 0x6366f1) => {
     const config = getSiteConfig();
     const { webhooks } = config;
   
-    if (!webhooks.enabled) return;
+    if (!webhooks.enabled || !checkWebhookRateLimit()) return;
   
     try {
       if (webhooks.type === "discord" && webhooks.discordWebhookUrl) {
@@ -94,7 +110,7 @@ export interface ToolUsageStat {
                 title,
                 description: message,
                 color,
-                footer: { text: "PrivateToolbox System Alert" },
+                footer: { text: "PrivateToolbox Shield Alert" },
                 timestamp: new Date().toISOString(),
               },
             ],
@@ -114,7 +130,7 @@ export interface ToolUsageStat {
         });
       }
     } catch (err) {
-      console.warn("Webhook dispatch failed:", err);
+      console.warn("Webhook dispatch error:", err);
     }
   };
   
@@ -146,8 +162,8 @@ export interface ToolUsageStat {
     const config = getSiteConfig();
     if (config.webhooks.notifyOnSupport) {
       sendWebhookNotification(
-        "☕ Support Conversion Detected!",
-        "A visitor just clicked the Razorpay support/donation link.",
+        "Support Conversion Detected",
+        "A visitor clicked the Razorpay contribution link.",
         0x10b981
       );
     }
@@ -166,14 +182,13 @@ export interface ToolUsageStat {
     const config = getSiteConfig();
     if (config.webhooks.notifyOnError) {
       sendWebhookNotification(
-        `🚨 Client Error in /${tool}`,
-        `Error details: \`${message}\``,
+        `Client Exception: /${tool}`,
+        `Error: \`${message}\``,
         0xef4444
       );
     }
   };
   
-  // Feedback Management
   export const submitUserFeedback = async (
     type: "feature" | "bug" | "feedback",
     message: string,
@@ -195,8 +210,8 @@ export interface ToolUsageStat {
     const config = getSiteConfig();
     if (config.webhooks.notifyOnFeedback) {
       sendWebhookNotification(
-        `📩 New User Submission: ${type.toUpperCase()}`,
-        `**Tool:** ${tool || "General"}\n**Message:** ${message}\n**Contact:** ${contact || "Anonymous"}`,
+        `User Feedback: ${type.toUpperCase()}`,
+        `**Context:** ${tool || "General"}\n**Message:** ${message}\n**Contact:** ${contact || "Anonymous"}`,
         0x3b82f6
       );
     }
@@ -220,7 +235,7 @@ export interface ToolUsageStat {
     return getStorage<SiteConfig>(STORAGE_KEYS.SITE_CONFIG, {
       announcement: {
         enabled: false,
-        message: "⚡ All operations execute locally in your browser memory.",
+        message: "All operations execute locally in your browser memory.",
         type: "info",
       },
       disabledTools: [],
