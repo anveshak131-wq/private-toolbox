@@ -17,9 +17,16 @@ export default function MarkdownPreviewPage() {
   const [md, setMd] = useState(INITIAL_MD);
   const [copied, setCopied] = useState(false);
 
-  // Lightweight parse for bold, headers, and lists
+  // Sanitized parser for bold, headers, and lists (prevents DOM XSS injection)
   const renderSimpleHtml = (text: string) => {
-    return text
+    const sanitized = text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
+    return sanitized
       .replace(/^### (.*$)/gim, '<h3 class="text-base font-bold text-indigo-300 mt-3 mb-1">$1</h3>')
       .replace(/^## (.*$)/gim, '<h2 class="text-lg font-bold text-white mt-4 mb-1">$1</h2>')
       .replace(/^# (.*$)/gim, '<h1 class="text-xl font-black text-white mt-2 mb-2">$1</h1>')
