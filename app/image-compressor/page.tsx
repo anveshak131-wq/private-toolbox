@@ -5,6 +5,7 @@ import { useFileDropAndPaste } from "../hooks/useFileDropAndPaste";
 import ImageCompareSlider from "../components/ImageCompareSlider";
 import ConfettiCanvas from "../components/ConfettiCanvas";
 import P2PTransferModal from "../components/P2PTransferModal";
+import DynamicIslandBar from "../components/DynamicIslandBar";
 import { downloadZipBundle, copyImageBlobToClipboard } from "../lib/downloadHelpers";
 import { logError } from "../lib/analytics";
 import { sounds } from "../lib/soundEffects";
@@ -111,6 +112,8 @@ export default function ImageCompressorPage() {
     }
   };
 
+  const totalSavedKB = images.reduce((acc, img) => acc + (img.originalSize - img.compressedSize), 0) / 1024;
+
   return (
     <main className="max-w-6xl mx-auto px-6 py-10 space-y-8 pb-32">
       <ConfettiCanvas trigger={showConfetti} />
@@ -141,7 +144,7 @@ export default function ImageCompressorPage() {
       <div className="space-y-2 text-center max-w-xl mx-auto">
         <h1 className="text-3xl font-black text-white">Lossless Image Compressor</h1>
         <p className="text-xs text-slate-400">
-          Compress JPG, PNG, and WebP files locally with live split inspection or beam them to mobile via P2P transfer.
+          Compress JPG, PNG, and WebP files locally with live split inspection. Hold <kbd className="bg-slate-800 px-1 py-0.5 rounded border border-slate-700 font-mono text-slate-300">Alt</kbd> for quick key radar.
         </p>
       </div>
 
@@ -206,7 +209,8 @@ export default function ImageCompressorPage() {
                 sounds.playPop();
                 fileInputRef.current?.click();
               }}
-              className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl text-xs transition shadow-lg shadow-indigo-600/20"
+              data-shortcut="A"
+              className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl text-xs transition shadow-lg shadow-indigo-600/20 relative"
             >
               + Add Images to Compress
             </button>
@@ -285,28 +289,15 @@ export default function ImageCompressorPage() {
         </div>
       </div>
 
-      {/* Floating Glass Action Bar */}
-      {images.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-5 py-3 rounded-full bg-slate-900/90 border border-slate-700/80 shadow-2xl backdrop-blur-xl animate-in slide-in-from-bottom duration-200">
-          <span className="text-xs font-bold text-white font-mono">{images.length} item{images.length > 1 ? "s" : ""} processed</span>
-          <span className="text-slate-600">|</span>
-          <button
-            onClick={handleDownloadAllZip}
-            className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-full text-xs transition shadow-md"
-          >
-            📦 Download All (.ZIP)
-          </button>
-          <button
-            onClick={() => {
-              sounds.playPop();
-              setImages([]);
-            }}
-            className="text-xs text-slate-400 hover:text-rose-400 transition px-2"
-          >
-            Clear All
-          </button>
-        </div>
-      )}
+      {/* Morphing Dynamic Island Floating Bar */}
+      <DynamicIslandBar
+        itemCount={images.length}
+        totalSavedKB={totalSavedKB}
+        isProcessing={isProcessing}
+        onDownloadAll={handleDownloadAllZip}
+        onSendToPhone={() => images[0] && setP2pFile({ blob: images[0].blob, name: `compressed-${images[0].name}` })}
+        onClear={() => setImages([])}
+      />
     </main>
   );
 }

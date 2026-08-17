@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import ToolIcon from "./components/ToolIcons";
 import SmartHeroDropzone from "./components/SmartHeroDropzone";
+import BentoPreviewCards from "./components/BentoPreviewCards";
 import { getSiteConfig } from "./lib/analytics";
 import { sounds } from "./lib/soundEffects";
 
@@ -17,25 +18,14 @@ interface ToolDef {
 }
 
 const TOOLS: ToolDef[] = [
-  // Flagships
+  // Document & PDF Suite
   {
     id: "ocr-reader",
-    title: "Client-Side OCR (Text Extractor)",
+    title: "Client-Side OCR",
     description: "Extract editable text from scanned documents and screenshots via Tesseract Web Workers.",
     badge: "Wasm OCR",
     category: "pdf",
-    featured: true,
   },
-  {
-    id: "signature-drawer",
-    title: "Signature & Watermark Drawer",
-    description: "Draw electronic signatures and export transparent PNG vectors with smooth strokes.",
-    badge: "Vector",
-    category: "images",
-    featured: true,
-  },
-
-  // Document & PDF Suite
   {
     id: "pdf-watermark",
     title: "PDF Watermark & Page Numberer",
@@ -80,6 +70,13 @@ const TOOLS: ToolDef[] = [
   },
 
   // Images & Graphics Suite
+  {
+    id: "signature-drawer",
+    title: "Signature & Watermark Drawer",
+    description: "Draw electronic signatures and export transparent PNG vectors with smooth strokes.",
+    badge: "Vector",
+    category: "images",
+  },
   {
     id: "social-cropper",
     title: "Social Media Aspect Cropper",
@@ -202,21 +199,34 @@ export default function HomePage() {
       <section className="text-center space-y-4 max-w-2xl mx-auto pt-2">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold">
           <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>Local In-Browser Memory • Zero Server Uploads</span>
+          <span>Hold [Alt/Option] for Shortcut Radar</span>
         </div>
         <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-white">
           Private, In-Browser <br />
           <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-            PDF, Graphics & Security Utilities
+            Developer & File Utilities
           </span>
         </h1>
         <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-          OCR extraction, PDF stamping, digital signatures, social aspect cropping, and cryptographic hashing in client memory.
+          Perform conversions, encryption, OCR, and compression directly in client memory with zero server uploads.
         </p>
       </section>
 
       {/* Smart File Dropzone */}
       <SmartHeroDropzone />
+
+      {/* Interactive Flagship Bento Previews */}
+      {!activePreset && activeCategory === "all" && (
+        <section className="space-y-4">
+          <div className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+            <svg className="w-3.5 h-3.5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+            </svg>
+            <span>Interactive Tool Sandboxes</span>
+          </div>
+          <BentoPreviewCards />
+        </section>
+      )}
 
       {/* Scenario Presets */}
       <div className="space-y-2">
@@ -332,18 +342,13 @@ export default function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredTools.map((tool) => {
               const isDisabled = disabledTools.includes(tool.id);
-              const isFlagship = tool.featured && !activePreset && activeCategory === "all";
 
               return (
                 <Link
                   key={tool.id}
                   href={isDisabled ? "#" : `/${tool.id}`}
                   onClick={() => !isDisabled && handleToolClick(tool.id)}
-                  className={`group relative flex flex-col justify-between p-6 rounded-3xl border transition duration-200 ${
-                    isFlagship
-                      ? "sm:col-span-2 lg:col-span-2 bg-gradient-to-br from-slate-900 via-slate-900/90 to-indigo-950/30 border-indigo-500/40 hover:border-indigo-500"
-                      : "bg-slate-900/50 hover:bg-slate-900 border-slate-800/80 hover:border-indigo-500/50"
-                  } ${
+                  className={`group relative flex flex-col justify-between p-6 rounded-3xl border transition duration-200 bg-slate-900/50 hover:bg-slate-900 border-slate-800/80 hover:border-indigo-500/50 ${
                     isDisabled
                       ? "opacity-50 cursor-not-allowed"
                       : "hover:shadow-xl hover:shadow-indigo-500/5 hover:-translate-y-0.5"
@@ -352,14 +357,14 @@ export default function HomePage() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="p-3 bg-slate-950/80 border border-slate-800 rounded-2xl group-hover:scale-110 group-hover:border-indigo-500/40 transition duration-200 shadow-inner">
-                        <ToolIcon name={tool.id} className={isFlagship ? "w-8 h-8" : "w-6 h-6"} />
+                        <ToolIcon name={tool.id} className="w-6 h-6" />
                       </div>
                       <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700/60 text-slate-300 font-mono">
                         {isDisabled ? "Maintenance" : tool.badge}
                       </span>
                     </div>
                     <div>
-                      <h3 className={`font-bold text-white group-hover:text-indigo-400 transition ${isFlagship ? "text-lg" : "text-base"}`}>
+                      <h3 className="font-bold text-white group-hover:text-indigo-400 transition text-base">
                         {tool.title}
                       </h3>
                       <p className="text-xs text-slate-400 mt-1 leading-relaxed">
