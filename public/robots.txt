@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /vault-*
+Disallow: /api/
+
+Sitemap: https://private-toolbox.pages.dev/sitemap.xml
