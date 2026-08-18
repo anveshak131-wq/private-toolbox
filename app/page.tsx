@@ -1,20 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import ToolIcon from "./components/ToolIcons";
 import SmartHeroDropzone from "./components/SmartHeroDropzone";
-import BentoPreviewCards from "./components/BentoPreviewCards";
-import { getSiteConfig } from "./lib/analytics";
-import { sounds } from "./lib/soundEffects";
 
 interface ToolDef {
   id: string;
   title: string;
   description: string;
   badge: string;
-  category: "images" | "pdf" | "privacy";
-  featured?: boolean;
+  category: "pdf" | "images" | "privacy" | "dev";
 }
 
 const TOOLS: ToolDef[] = [
@@ -22,124 +18,124 @@ const TOOLS: ToolDef[] = [
   {
     id: "ocr-reader",
     title: "Client-Side OCR",
-    description: "Extract editable text from scanned documents and screenshots via Tesseract Web Workers.",
-    badge: "Wasm OCR",
-    category: "pdf",
-  },
-  {
-    id: "pdf-watermark",
-    title: "PDF Watermark & Page Numberer",
-    description: "Stamp security watermarks and dynamic page counts directly into PDF vector pages.",
-    badge: "Vector Stamp",
-    category: "pdf",
-  },
-  {
-    id: "pdf-security",
-    title: "PDF Password Locker",
-    description: "Lock confidential PDF contracts and bank statements with client-side AES encryption.",
-    badge: "AES-256",
-    category: "pdf",
-  },
-  {
-    id: "invoice-generator",
-    title: "Invoice & Receipt Maker",
-    description: "Generate and calculate formal PDF invoices directly in browser memory.",
-    badge: "PDF Maker",
-    category: "pdf",
-  },
-  {
-    id: "pdf-organizer",
-    title: "PDF Splitter & Organizer",
-    description: "Interactive thumbnail grid to rearrange, rotate, split, and delete PDF pages.",
-    badge: "Popular",
+    description: "Extract text from scanned documents and screenshots locally via Tesseract.",
+    badge: "WASM",
     category: "pdf",
   },
   {
     id: "pdf-merger",
     title: "PDF Merger",
     description: "Combine multiple PDF documents into a single organized file in seconds.",
-    badge: "Zero Upload",
+    badge: "Fast",
+    category: "pdf",
+  },
+  {
+    id: "pdf-organizer",
+    title: "PDF Splitter & Organizer",
+    description: "Rearrange, rotate, split, and extract PDF pages visually.",
+    badge: "Visual",
+    category: "pdf",
+  },
+  {
+    id: "pdf-watermark",
+    title: "PDF Watermark",
+    description: "Stamp security watermarks and custom page counts onto PDF pages.",
+    badge: "Vector",
+    category: "pdf",
+  },
+  {
+    id: "pdf-security",
+    title: "PDF Password Locker",
+    description: "Lock confidential PDFs with client-side AES encryption.",
+    badge: "AES-256",
+    category: "pdf",
+  },
+  {
+    id: "invoice-generator",
+    title: "Invoice Maker",
+    description: "Generate clean PDF invoices with automatic tax and total calculation.",
+    badge: "PDF",
     category: "pdf",
   },
   {
     id: "image-to-pdf",
     title: "Image to PDF",
-    description: "Convert batches of JPG, PNG, and WebP images into a single formatted PDF document.",
+    description: "Convert batches of JPG, PNG, and WebP images into a single PDF document.",
     badge: "Batch",
     category: "pdf",
   },
 
-  // Images & Graphics Suite
+  // Images & Graphics
+  {
+    id: "image-compressor",
+    title: "Image Compressor",
+    description: "Losslessly compress PNG, JPG, and WebP files with instant split inspection.",
+    badge: "Canvas",
+    category: "images",
+  },
   {
     id: "signature-drawer",
-    title: "Signature & Watermark Drawer",
-    description: "Draw electronic signatures and export transparent PNG vectors with smooth strokes.",
+    title: "Signature Pad",
+    description: "Draw electronic signatures and export transparent smooth PNG vectors.",
     badge: "Vector",
     category: "images",
   },
   {
     id: "social-cropper",
-    title: "Social Media Aspect Cropper",
-    description: "Crop images to standardized social media dimensions without black bars.",
+    title: "Aspect Cropper",
+    description: "Crop images to standard social media aspect ratios without distortion.",
     badge: "Auto-Fit",
     category: "images",
   },
   {
     id: "batch-converter",
     title: "Batch Format Converter",
-    description: "Convert batches of PNG, JPG, and WebP images simultaneously into a zipped package.",
-    badge: "Multi-file",
+    description: "Convert batches of images between WebP, PNG, and JPG in one click.",
+    badge: "Batch",
     category: "images",
   },
   {
     id: "color-contrast-simulator",
     title: "WCAG Contrast Checker",
-    description: "Verify accessibility compliance scores (AA / AAA) for typography and backgrounds.",
-    badge: "WCAG AA",
-    category: "images",
-  },
-  {
-    id: "image-compressor",
-    title: "Lossless Image Compressor",
-    description: "Compress PNG, JPG, and WebP files locally with real-time split inspection.",
-    badge: "Fast Canvas",
+    description: "Test foreground and background combinations against WCAG accessibility targets.",
+    badge: "WCAG",
     category: "images",
   },
 
-  // Privacy & Security Suite
+  // Privacy & Security
   {
     id: "secure-note",
     title: "Zero-Knowledge Note",
-    description: "Share secret notes where data lives entirely in the URL hash fragment without server storage.",
-    badge: "Hash Encrypted",
+    description: "Share secret notes where data lives entirely in the URL hash fragment.",
+    badge: "Encrypted",
     category: "privacy",
   },
   {
     id: "checksum-verifier",
-    title: "File Checksum & Hash Verifier",
-    description: "Compute SHA-256, SHA-512, and SHA-1 checksums locally in browser memory.",
+    title: "File Checksum Verifier",
+    description: "Compute and verify SHA-256, SHA-512, and MD5 hashes in memory.",
     badge: "WebCrypto",
-    category: "privacy",
-  },
-  {
-    id: "fingerprint-analyzer",
-    title: "Browser Fingerprint Inspector",
-    description: "Inspect the hardware and sandbox identifiers your browser exposes to websites.",
-    badge: "Audit",
     category: "privacy",
   },
   {
     id: "metadata-stripper",
     title: "EXIF & Metadata Stripper",
-    description: "Remove GPS locations, device serials, and timestamps from photos before sharing.",
-    badge: "Sanitizer",
+    description: "Strip GPS coordinates and camera metadata from photos before sharing.",
+    badge: "Sanitize",
     category: "privacy",
   },
   {
     id: "file-encryptor",
-    title: "Client-Side File Encryptor",
-    description: "Encrypt and decrypt files using military-grade AES-256-GCM in browser memory.",
+    title: "File Encryptor",
+    description: "Encrypt and decrypt files using military-grade AES-256-GCM in memory.",
     badge: "AES-GCM",
+    category: "privacy",
+  },
+  {
+    id: "fingerprint-analyzer",
+    title: "Browser Fingerprint",
+    description: "Inspect hardware identifiers and sandbox permissions your browser exposes.",
+    badge: "Audit",
     category: "privacy",
   },
   {
@@ -149,280 +145,123 @@ const TOOLS: ToolDef[] = [
     badge: "Crypto",
     category: "privacy",
   },
-];
 
-const WORKFLOW_PRESETS = [
-  { label: "PDF & OCR Workflow", tools: ["ocr-reader", "pdf-watermark", "pdf-security", "invoice-generator"] },
-  { label: "Graphics & Design Pack", tools: ["signature-drawer", "social-cropper", "batch-converter", "color-contrast-simulator"] },
-  { label: "Security & Privacy Suite", tools: ["secure-note", "checksum-verifier", "fingerprint-analyzer", "file-encryptor"] },
+  // Developer Text & Code
+  {
+    id: "json-formatter",
+    title: "JSON Formatter",
+    description: "Format, validate, and minify JSON trees directly in memory.",
+    badge: "Dev",
+    category: "dev",
+  },
+  {
+    id: "diff-checker",
+    title: "Diff Checker",
+    description: "Compare two text or code snippets with side-by-side syntax highlighting.",
+    badge: "Diff",
+    category: "dev",
+  },
+  {
+    id: "markdown-preview",
+    title: "Markdown Live Editor",
+    description: "Real-time Markdown editor with live GitHub-flavored HTML preview.",
+    badge: "Markdown",
+    category: "dev",
+  },
+  {
+    id: "base64-codec",
+    title: "Base64 Encoder / Decoder",
+    description: "Encode and decode raw strings, files, and data URLs locally.",
+    badge: "Codec",
+    category: "dev",
+  },
 ];
 
 export default function HomePage() {
   const [activeCategory, setActiveCategory] = useState<string>("all");
-  const [viewMode, setViewMode] = useState<"bento" | "table">("bento");
-  const [activePreset, setActivePreset] = useState<string | null>(null);
-  const [recentToolIds, setRecentToolIds] = useState<string[]>([]);
-  const [disabledTools, setDisabledTools] = useState<string[]>([]);
-
-  useEffect(() => {
-    try {
-      const recents: string[] = JSON.parse(localStorage.getItem("pt_recent_tools") || "[]");
-      setRecentToolIds(recents);
-      const config = getSiteConfig();
-      setDisabledTools(config.disabledTools || []);
-    } catch {}
-  }, []);
 
   const filteredTools = TOOLS.filter((t) => {
-    if (activePreset) {
-      const preset = WORKFLOW_PRESETS.find((p) => p.label === activePreset);
-      return preset?.tools.includes(t.id);
-    }
     if (activeCategory === "all") return true;
     return t.category === activeCategory;
   });
 
-  const recentTools = TOOLS.filter((t) => recentToolIds.includes(t.id));
-
-  const handleToolClick = (id: string) => {
-    sounds?.playPop?.();
-    try {
-      const recents: string[] = JSON.parse(localStorage.getItem("pt_recent_tools") || "[]");
-      const updated = [id, ...recents.filter((item: string) => item !== id)].slice(0, 5);
-      localStorage.setItem("pt_recent_tools", JSON.stringify(updated));
-    } catch {}
-  };
-
   return (
-    <main className="max-w-6xl mx-auto px-6 py-10 space-y-12">
-      {/* Hero Section */}
-      <section className="text-center space-y-4 max-w-2xl mx-auto pt-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-semibold transition-colors">
-          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span>Hold [Alt / Option] for Shortcut Radar</span>
+    <main className="max-w-5xl mx-auto px-6 py-12 space-y-10">
+      {/* Refined Minimal Hero */}
+      <section className="space-y-3 pt-2">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-[11px] font-medium text-neutral-600 dark:text-neutral-400">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          <span>100% Client-Side • Zero Server Uploads</span>
         </div>
-        <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-neutral-900 dark:text-white transition-colors">
-          Private, In-Browser <br />
-          <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
-            Developer & File Utilities
-          </span>
+        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+          Developer & File Utilities
         </h1>
-        <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed transition-colors">
-          Perform conversions, encryption, OCR, and compression directly in client memory with zero server uploads.
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-lg">
+          Fast, private tools that process PDFs, images, encryption, and text directly inside your browser memory.
         </p>
       </section>
 
-      {/* Smart File Dropzone */}
+      {/* Hero Dropzone */}
       <SmartHeroDropzone />
 
-      {/* Interactive Flagship Bento Previews */}
-      {!activePreset && activeCategory === "all" && (
-        <section className="space-y-4">
-          <div className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 flex items-center gap-2">
-            <svg className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-            </svg>
-            <span>Interactive Tool Sandboxes</span>
-          </div>
-          <BentoPreviewCards />
-        </section>
-      )}
-
-      {/* Scenario Presets */}
-      <div className="space-y-2">
-        <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 text-center">
-          Scenario Presets
-        </div>
-        <div className="flex flex-wrap gap-2 justify-center">
-          {WORKFLOW_PRESETS.map((preset) => (
+      {/* Category Navigation Bar */}
+      <section className="space-y-6">
+        <div className="flex items-center gap-1.5 border-b border-neutral-200/80 dark:border-neutral-800/80 pb-3 overflow-x-auto">
+          {[
+            { id: "all", label: "All Tools" },
+            { id: "pdf", label: "PDF & OCR" },
+            { id: "images", label: "Images & Media" },
+            { id: "privacy", label: "Privacy & Security" },
+            { id: "dev", label: "Developer Tools" },
+          ].map((tab) => (
             <button
-              key={preset.label}
-              onClick={() => {
-                sounds?.playPop?.();
-                setActivePreset(activePreset === preset.label ? null : preset.label);
-                setActiveCategory("all");
-              }}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
-                activePreset === preset.label
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
-                  : "bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+              key={tab.id}
+              onClick={() => setActiveCategory(tab.id)}
+              className={`px-3 py-1 rounded-md text-xs font-medium transition ${
+                activeCategory === tab.id
+                  ? "bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 shadow-sm"
+                  : "text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200"
               }`}
             >
-              {preset.label}
+              {tab.label}
             </button>
           ))}
         </div>
-      </div>
 
-      {/* Recently Used Bar */}
-      {recentTools.length > 0 && !activePreset && (
-        <section className="space-y-3">
-          <div className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 flex items-center gap-2">
-            <svg className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-            </svg>
-            <span>Recently Used</span>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {recentTools.slice(0, 4).map((tool) => (
-              <Link
-                key={tool.id}
-                href={`/${tool.id}`}
-                onClick={() => handleToolClick(tool.id)}
-                className="flex items-center gap-3 p-3 bg-white dark:bg-neutral-900/80 hover:bg-neutral-50 dark:hover:bg-neutral-800/90 border border-neutral-200 dark:border-neutral-800 rounded-2xl transition hover:scale-[1.02] shadow-sm"
-              >
-                <div className="p-2 bg-neutral-50 dark:bg-neutral-950/80 border border-neutral-200 dark:border-neutral-800 rounded-xl">
-                  <ToolIcon name={tool.id} className="w-5 h-5" />
-                </div>
-                <div className="overflow-hidden">
-                  <div className="text-xs font-bold text-neutral-900 dark:text-white truncate">{tool.title}</div>
-                  <div className="text-[10px] text-neutral-500 dark:text-neutral-400">Reopen tool →</div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Directory Section */}
-      <section className="space-y-6">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-neutral-200/80 dark:border-neutral-800/80 pb-4">
-          <div className="flex flex-wrap gap-2">
-            {[
-              { id: "all", label: "All Utilities" },
-              { id: "pdf", label: "PDF & OCR" },
-              { id: "images", label: "Graphics & Design" },
-              { id: "privacy", label: "Privacy & Security" },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  sounds?.playPop?.();
-                  setActiveCategory(tab.id);
-                  setActivePreset(null);
-                }}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${
-                  activeCategory === tab.id && !activePreset
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "bg-white dark:bg-neutral-900/60 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white border border-neutral-200 dark:border-neutral-800"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-1 text-xs">
-            <button
-              onClick={() => {
-                sounds?.playPop?.();
-                setViewMode("bento");
-              }}
-              className={`px-3 py-1 rounded-lg font-semibold transition ${
-                viewMode === "bento"
-                  ? "bg-white dark:bg-indigo-600 text-neutral-900 dark:text-white shadow-sm"
-                  : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
-              }`}
+        {/* Crisp, Minimal Card Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          {filteredTools.map((tool) => (
+            <Link
+              key={tool.id}
+              href={`/${tool.id}`}
+              className="group flex flex-col justify-between p-4 rounded-xl border border-neutral-200/80 dark:border-neutral-800/80 bg-white dark:bg-neutral-900/40 hover:border-neutral-300 dark:hover:border-neutral-700 transition hover:bg-neutral-50/50 dark:hover:bg-neutral-900/70"
             >
-              Bento Grid
-            </button>
-            <button
-              onClick={() => {
-                sounds?.playPop?.();
-                setViewMode("table");
-              }}
-              className={`px-3 py-1 rounded-lg font-semibold transition ${
-                viewMode === "table"
-                  ? "bg-white dark:bg-indigo-600 text-neutral-900 dark:text-white shadow-sm"
-                  : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
-              }`}
-            >
-              Dense List
-            </button>
-          </div>
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="p-1.5 rounded-lg bg-neutral-100 dark:bg-neutral-800/70 text-neutral-700 dark:text-neutral-300">
+                    <ToolIcon name={tool.id} className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] font-mono font-medium text-neutral-400 dark:text-neutral-500 bg-neutral-50 dark:bg-neutral-900 px-1.5 py-0.5 rounded border border-neutral-200/60 dark:border-neutral-800/60">
+                    {tool.badge}
+                  </span>
+                </div>
+                <div>
+                  <h2 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">
+                    {tool.title}
+                  </h2>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed line-clamp-2">
+                    {tool.description}
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-4 text-[11px] font-medium text-neutral-400 dark:text-neutral-500 group-hover:text-neutral-900 dark:group-hover:text-neutral-200 flex items-center justify-between">
+                <span>Open tool</span>
+                <span className="group-hover:translate-x-0.5 transition">→</span>
+              </div>
+            </Link>
+          ))}
         </div>
-
-        {viewMode === "bento" ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredTools.map((tool) => {
-              const isDisabled = disabledTools.includes(tool.id);
-
-              return (
-                <Link
-                  key={tool.id}
-                  href={isDisabled ? "#" : `/${tool.id}`}
-                  onClick={() => !isDisabled && handleToolClick(tool.id)}
-                  className={`group relative flex flex-col justify-between p-6 rounded-3xl border transition duration-200 bg-white dark:bg-neutral-900/50 hover:bg-neutral-50/80 dark:hover:bg-neutral-900 border-neutral-200/90 dark:border-neutral-800/80 hover:border-indigo-500/50 dark:hover:border-indigo-500/50 ${
-                    isDisabled
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:shadow-xl hover:shadow-neutral-200/50 dark:hover:shadow-black/40 hover:-translate-y-0.5"
-                  }`}
-                >
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="p-3 bg-neutral-50 dark:bg-neutral-950/80 border border-neutral-200 dark:border-neutral-800 rounded-2xl group-hover:scale-110 group-hover:border-indigo-500/40 transition duration-200 shadow-inner">
-                        <ToolIcon name={tool.id} className="w-6 h-6" />
-                      </div>
-                      <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700/60 text-neutral-700 dark:text-neutral-300 font-mono">
-                        {isDisabled ? "Maintenance" : tool.badge}
-                      </span>
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-neutral-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition text-base">
-                        {tool.title}
-                      </h3>
-                      <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-1 leading-relaxed">
-                        {tool.description}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="pt-6 flex items-center justify-between text-xs font-semibold text-indigo-600 dark:text-indigo-400">
-                    <span className="group-hover:translate-x-1 transition duration-200">
-                      {isDisabled ? "Temporarily Disabled" : "Open Tool →"}
-                    </span>
-                    <kbd className="hidden sm:inline-block text-[10px] font-mono text-neutral-400 dark:text-neutral-500 bg-neutral-100 dark:bg-neutral-950 px-2 py-0.5 rounded border border-neutral-200 dark:border-neutral-800">
-                      /{tool.id}
-                    </kbd>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="bg-white dark:bg-neutral-900/60 border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-hidden divide-y divide-neutral-200/80 dark:divide-neutral-800/80 shadow-sm">
-            {filteredTools.map((tool) => (
-              <Link
-                key={tool.id}
-                href={`/${tool.id}`}
-                onClick={() => handleToolClick(tool.id)}
-                className="flex items-center justify-between p-4 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 transition group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="p-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl">
-                    <ToolIcon name={tool.id} className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-neutral-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">
-                      {tool.title}
-                    </div>
-                    <div className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate max-w-md">
-                      {tool.description}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-[10px] font-mono text-neutral-400 dark:text-neutral-500 uppercase">
-                    {tool.category}
-                  </span>
-                  <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 group-hover:translate-x-1 transition">
-                    →
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
       </section>
     </main>
   );
