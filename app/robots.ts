@@ -1,13 +1,11 @@
 import { MetadataRoute } from "next";
 
-export const dynamic = "force-static";
-
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/vault-x9k2p-control-panel"],
+      disallow: ["/vault-*", "/api/"],
     },
     sitemap: "https://private-toolbox.pages.dev/sitemap.xml",
   };

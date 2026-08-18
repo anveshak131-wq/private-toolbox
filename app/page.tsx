@@ -43,7 +43,7 @@ const TOOLS: ToolDef[] = [
   {
     id: "invoice-generator",
     title: "Invoice & Receipt Maker",
-    description: "Generate and calculate formal PDF invoices in browser memory.",
+    description: "Generate and calculate formal PDF invoices directly in browser memory.",
     badge: "PDF Maker",
     category: "pdf",
   },
@@ -185,7 +185,7 @@ export default function HomePage() {
   const recentTools = TOOLS.filter((t) => recentToolIds.includes(t.id));
 
   const handleToolClick = (id: string) => {
-    sounds.playPop();
+    sounds?.playPop?.();
     try {
       const recents: string[] = JSON.parse(localStorage.getItem("pt_recent_tools") || "[]");
       const updated = [id, ...recents.filter((item: string) => item !== id)].slice(0, 5);
@@ -197,17 +197,17 @@ export default function HomePage() {
     <main className="max-w-6xl mx-auto px-6 py-10 space-y-12">
       {/* Hero Section */}
       <section className="text-center space-y-4 max-w-2xl mx-auto pt-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold">
-          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>Hold [Alt/Option] for Shortcut Radar</span>
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-semibold transition-colors">
+          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span>Hold [Alt / Option] for Shortcut Radar</span>
         </div>
-        <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-white">
+        <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-neutral-900 dark:text-white transition-colors">
           Private, In-Browser <br />
-          <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
             Developer & File Utilities
           </span>
         </h1>
-        <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+        <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed transition-colors">
           Perform conversions, encryption, OCR, and compression directly in client memory with zero server uploads.
         </p>
       </section>
@@ -218,8 +218,8 @@ export default function HomePage() {
       {/* Interactive Flagship Bento Previews */}
       {!activePreset && activeCategory === "all" && (
         <section className="space-y-4">
-          <div className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-            <svg className="w-3.5 h-3.5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <div className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 flex items-center gap-2">
+            <svg className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
             </svg>
             <span>Interactive Tool Sandboxes</span>
@@ -230,7 +230,7 @@ export default function HomePage() {
 
       {/* Scenario Presets */}
       <div className="space-y-2">
-        <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 text-center">
+        <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 text-center">
           Scenario Presets
         </div>
         <div className="flex flex-wrap gap-2 justify-center">
@@ -238,14 +238,14 @@ export default function HomePage() {
             <button
               key={preset.label}
               onClick={() => {
-                sounds.playPop();
+                sounds?.playPop?.();
                 setActivePreset(activePreset === preset.label ? null : preset.label);
                 setActiveCategory("all");
               }}
               className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
                 activePreset === preset.label
                   ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
-                  : "bg-slate-900 border border-slate-800 text-slate-400 hover:text-white"
+                  : "bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
               }`}
             >
               {preset.label}
@@ -257,8 +257,8 @@ export default function HomePage() {
       {/* Recently Used Bar */}
       {recentTools.length > 0 && !activePreset && (
         <section className="space-y-3">
-          <div className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-            <svg className="w-3.5 h-3.5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <div className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 flex items-center gap-2">
+            <svg className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
             </svg>
             <span>Recently Used</span>
@@ -269,14 +269,14 @@ export default function HomePage() {
                 key={tool.id}
                 href={`/${tool.id}`}
                 onClick={() => handleToolClick(tool.id)}
-                className="flex items-center gap-3 p-3 bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800 rounded-2xl transition hover:scale-[1.02]"
+                className="flex items-center gap-3 p-3 bg-white dark:bg-neutral-900/80 hover:bg-neutral-50 dark:hover:bg-neutral-800/90 border border-neutral-200 dark:border-neutral-800 rounded-2xl transition hover:scale-[1.02] shadow-sm"
               >
-                <div className="p-2 bg-slate-950/80 border border-slate-800 rounded-xl">
+                <div className="p-2 bg-neutral-50 dark:bg-neutral-950/80 border border-neutral-200 dark:border-neutral-800 rounded-xl">
                   <ToolIcon name={tool.id} className="w-5 h-5" />
                 </div>
                 <div className="overflow-hidden">
-                  <div className="text-xs font-bold text-white truncate">{tool.title}</div>
-                  <div className="text-[10px] text-slate-400">Reopen tool →</div>
+                  <div className="text-xs font-bold text-neutral-900 dark:text-white truncate">{tool.title}</div>
+                  <div className="text-[10px] text-neutral-500 dark:text-neutral-400">Reopen tool →</div>
                 </div>
               </Link>
             ))}
@@ -286,7 +286,7 @@ export default function HomePage() {
 
       {/* Directory Section */}
       <section className="space-y-6">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-neutral-200/80 dark:border-neutral-800/80 pb-4">
           <div className="flex flex-wrap gap-2">
             {[
               { id: "all", label: "All Utilities" },
@@ -297,14 +297,14 @@ export default function HomePage() {
               <button
                 key={tab.id}
                 onClick={() => {
-                  sounds.playPop();
+                  sounds?.playPop?.();
                   setActiveCategory(tab.id);
                   setActivePreset(null);
                 }}
                 className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${
                   activeCategory === tab.id && !activePreset
-                    ? "bg-indigo-600 text-white"
-                    : "bg-slate-900/60 text-slate-400 hover:text-white border border-slate-800"
+                    ? "bg-indigo-600 text-white shadow-sm"
+                    : "bg-white dark:bg-neutral-900/60 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white border border-neutral-200 dark:border-neutral-800"
                 }`}
               >
                 {tab.label}
@@ -312,25 +312,29 @@ export default function HomePage() {
             ))}
           </div>
 
-          <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 text-xs">
+          <div className="flex items-center bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-1 text-xs">
             <button
               onClick={() => {
-                sounds.playPop();
+                sounds?.playPop?.();
                 setViewMode("bento");
               }}
               className={`px-3 py-1 rounded-lg font-semibold transition ${
-                viewMode === "bento" ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-white"
+                viewMode === "bento"
+                  ? "bg-white dark:bg-indigo-600 text-neutral-900 dark:text-white shadow-sm"
+                  : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
               }`}
             >
               Bento Grid
             </button>
             <button
               onClick={() => {
-                sounds.playPop();
+                sounds?.playPop?.();
                 setViewMode("table");
               }}
               className={`px-3 py-1 rounded-lg font-semibold transition ${
-                viewMode === "table" ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-white"
+                viewMode === "table"
+                  ? "bg-white dark:bg-indigo-600 text-neutral-900 dark:text-white shadow-sm"
+                  : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
               }`}
             >
               Dense List
@@ -348,36 +352,36 @@ export default function HomePage() {
                   key={tool.id}
                   href={isDisabled ? "#" : `/${tool.id}`}
                   onClick={() => !isDisabled && handleToolClick(tool.id)}
-                  className={`group relative flex flex-col justify-between p-6 rounded-3xl border transition duration-200 bg-slate-900/50 hover:bg-slate-900 border-slate-800/80 hover:border-indigo-500/50 ${
+                  className={`group relative flex flex-col justify-between p-6 rounded-3xl border transition duration-200 bg-white dark:bg-neutral-900/50 hover:bg-neutral-50/80 dark:hover:bg-neutral-900 border-neutral-200/90 dark:border-neutral-800/80 hover:border-indigo-500/50 dark:hover:border-indigo-500/50 ${
                     isDisabled
                       ? "opacity-50 cursor-not-allowed"
-                      : "hover:shadow-xl hover:shadow-indigo-500/5 hover:-translate-y-0.5"
+                      : "hover:shadow-xl hover:shadow-neutral-200/50 dark:hover:shadow-black/40 hover:-translate-y-0.5"
                   }`}
                 >
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <div className="p-3 bg-slate-950/80 border border-slate-800 rounded-2xl group-hover:scale-110 group-hover:border-indigo-500/40 transition duration-200 shadow-inner">
+                      <div className="p-3 bg-neutral-50 dark:bg-neutral-950/80 border border-neutral-200 dark:border-neutral-800 rounded-2xl group-hover:scale-110 group-hover:border-indigo-500/40 transition duration-200 shadow-inner">
                         <ToolIcon name={tool.id} className="w-6 h-6" />
                       </div>
-                      <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700/60 text-slate-300 font-mono">
+                      <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700/60 text-neutral-700 dark:text-neutral-300 font-mono">
                         {isDisabled ? "Maintenance" : tool.badge}
                       </span>
                     </div>
                     <div>
-                      <h3 className="font-bold text-white group-hover:text-indigo-400 transition text-base">
+                      <h3 className="font-bold text-neutral-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition text-base">
                         {tool.title}
                       </h3>
-                      <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                      <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-1 leading-relaxed">
                         {tool.description}
                       </p>
                     </div>
                   </div>
 
-                  <div className="pt-6 flex items-center justify-between text-xs font-semibold text-indigo-400">
+                  <div className="pt-6 flex items-center justify-between text-xs font-semibold text-indigo-600 dark:text-indigo-400">
                     <span className="group-hover:translate-x-1 transition duration-200">
                       {isDisabled ? "Temporarily Disabled" : "Open Tool →"}
                     </span>
-                    <kbd className="hidden sm:inline-block text-[10px] font-mono text-slate-600 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
+                    <kbd className="hidden sm:inline-block text-[10px] font-mono text-neutral-400 dark:text-neutral-500 bg-neutral-100 dark:bg-neutral-950 px-2 py-0.5 rounded border border-neutral-200 dark:border-neutral-800">
                       /{tool.id}
                     </kbd>
                   </div>
@@ -386,28 +390,34 @@ export default function HomePage() {
             })}
           </div>
         ) : (
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden divide-y divide-slate-800/80">
+          <div className="bg-white dark:bg-neutral-900/60 border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-hidden divide-y divide-neutral-200/80 dark:divide-neutral-800/80 shadow-sm">
             {filteredTools.map((tool) => (
               <Link
                 key={tool.id}
                 href={`/${tool.id}`}
                 onClick={() => handleToolClick(tool.id)}
-                className="flex items-center justify-between p-4 hover:bg-slate-800/60 transition group"
+                className="flex items-center justify-between p-4 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 transition group"
               >
                 <div className="flex items-center gap-4">
-                  <div className="p-2 bg-slate-950 border border-slate-800 rounded-xl">
+                  <div className="p-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl">
                     <ToolIcon name={tool.id} className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-white group-hover:text-indigo-400 transition">
+                    <div className="text-xs font-bold text-neutral-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">
                       {tool.title}
                     </div>
-                    <div className="text-[11px] text-slate-400 truncate max-w-md">{tool.description}</div>
+                    <div className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate max-w-md">
+                      {tool.description}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-[10px] font-mono text-slate-500 uppercase">{tool.category}</span>
-                  <span className="text-xs font-bold text-indigo-400 group-hover:translate-x-1 transition">→</span>
+                  <span className="text-[10px] font-mono text-neutral-400 dark:text-neutral-500 uppercase">
+                    {tool.category}
+                  </span>
+                  <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 group-hover:translate-x-1 transition">
+                    →
+                  </span>
                 </div>
               </Link>
             ))}

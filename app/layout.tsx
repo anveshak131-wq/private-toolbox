@@ -1,144 +1,93 @@
-"use client";
-
-import React, { useState } from "react";
+import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Logo from "./components/Logo";
-import AnalyticsTracker from "./components/AnalyticsTracker";
-import FeedbackModal from "./components/FeedbackModal";
-import CommandPalette from "./components/CommandPalette";
-import PrivacyGauge from "./components/PrivacyGauge";
-import ShortcutRadar from "./components/ShortcutRadar";
-import Link from "next/link";
-import { trackSupportClick } from "./lib/analytics";
-import { sounds } from "./lib/soundEffects";
+import ClientLayout from "./components/ClientLayout";
+import { ThemeProvider } from "./components/ThemeProvider";
 
 const inter = Inter({ subsets: ["latin"] });
-const SUPPORT_LINK = "https://rzp.io/rzp/yUV6trVJ";
+
+export const metadata: Metadata = {
+  metadataBase: new URL("https://private-toolbox.pages.dev"),
+  title: {
+    default: "PrivateToolbox – In-Browser PDF, Image & Security Utilities",
+    template: "%s | PrivateToolbox",
+  },
+  description:
+    "Free, 100% client-side file and developer utilities. Compress images, merge PDFs, extract OCR text, and encrypt files in browser memory with zero server uploads.",
+  keywords: [
+    "in-browser file tools",
+    "client-side pdf merger",
+    "lossless image compressor offline",
+    "private ocr text extractor",
+    "zero upload privacy tools",
+    "p2p file transfer webrtc",
+  ],
+  authors: [{ name: "PrivateToolbox" }],
+  creator: "PrivateToolbox",
+  alternates: {
+    canonical: "https://private-toolbox.pages.dev",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://private-toolbox.pages.dev",
+    title: "PrivateToolbox – 100% In-Browser File & Security Utilities",
+    description: "Zero server uploads. Process PDFs, images, and text directly in your device memory.",
+    siteName: "PrivateToolbox",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PrivateToolbox – In-Browser Utilities",
+    description: "Zero server uploads. Perform conversions, compression, and encryption locally.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [feedbackOpen, setFeedbackOpen] = useState(false);
-
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              name: "PrivateToolbox",
+              operatingSystem: "All",
+              applicationCategory: "UtilitiesApplication",
+              offers: {
+                "@type": "Offer",
+                price: "0",
+                priceCurrency: "USD",
+              },
+              description:
+                "Zero-server file manipulation and developer utilities executing directly in client-side memory.",
+              url: "https://private-toolbox.pages.dev",
+            }),
+          }}
+        />
+      </head>
       <body
-        className={`${inter.className} bg-slate-950 text-slate-100 antialiased min-h-screen flex flex-col selection:bg-indigo-500/30 selection:text-indigo-200`}
+        className={`${inter.className} min-h-screen flex flex-col bg-dot-pattern antialiased selection:bg-indigo-500/20 selection:text-indigo-600 dark:selection:text-indigo-300 transition-colors duration-200`}
       >
-        <AnalyticsTracker />
-        <CommandPalette />
-        <ShortcutRadar />
-        <FeedbackModal isOpen={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
-
-        {/* Global Navigation Header */}
-        <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-slate-950/75 backdrop-blur-xl">
-          <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <Link href="/" onClick={() => sounds.playPop()} className="hover:opacity-90 transition">
-                <Logo size="md" />
-              </Link>
-              <PrivacyGauge />
-            </div>
-
-            <nav className="flex items-center gap-2 sm:gap-3 text-xs font-semibold">
-              <button
-                onClick={() => {
-                  sounds.playPop();
-                  window.dispatchEvent(new KeyboardEvent("keydown", { key: "/", bubbles: true }));
-                }}
-                data-shortcut="/"
-                className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition relative"
-              >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="11" cy="11" r="8" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-                <span>Quick Find</span>
-                <kbd className="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700 font-mono">
-                  /
-                </kbd>
-              </button>
-
-              <button
-                onClick={() => {
-                  sounds.playPop();
-                  setFeedbackOpen(true);
-                }}
-                data-shortcut="F"
-                className="text-slate-400 hover:text-white transition px-3 py-1.5 rounded-lg hover:bg-slate-900 flex items-center gap-1.5 relative"
-              >
-                <svg className="w-3.5 h-3.5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-                <span>Feedback</span>
-              </button>
-
-              <a
-                href={SUPPORT_LINK}
-                onClick={() => {
-                  sounds.playSuccess();
-                  trackSupportClick();
-                }}
-                target="_blank"
-                rel="noopener noreferrer"
-                data-shortcut="S"
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition shadow-sm font-medium relative"
-              >
-                <svg className="w-3.5 h-3.5 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
-                  <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
-                  <line x1="6" y1="1" x2="6" y2="4" />
-                  <line x1="10" y1="1" x2="10" y2="4" />
-                  <line x1="14" y1="1" x2="14" y2="4" />
-                </svg>
-                <span>Support</span>
-              </a>
-            </nav>
-          </div>
-        </header>
-
-        {/* Main Content */}
-        <div className="flex-1">{children}</div>
-
-        {/* Global Footer */}
-        <footer className="border-t border-slate-800/80 bg-slate-950/60 backdrop-blur-md py-8 text-center text-xs text-slate-500">
-          <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              <span className="font-semibold text-slate-400">PrivateToolbox</span>
-              <span>•</span>
-              <span>100% Client-Side In-Memory Execution</span>
-            </div>
-
-            <div className="flex items-center gap-4 text-slate-400">
-              <button
-                onClick={() => {
-                  sounds.playPop();
-                  setFeedbackOpen(true);
-                }}
-                className="hover:text-indigo-400 transition"
-              >
-                Suggest a Tool / Report Bug
-              </button>
-              <span>•</span>
-              <a
-                href={SUPPORT_LINK}
-                onClick={trackSupportClick}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-indigo-400 transition"
-              >
-                Donate / Support
-              </a>
-              <span>•</span>
-              <p className="text-slate-600">
-                © {new Date().getFullYear()} PrivateToolbox
-              </p>
-            </div>
-          </div>
-        </footer>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <ClientLayout>{children}</ClientLayout>
+        </ThemeProvider>
       </body>
     </html>
   );
